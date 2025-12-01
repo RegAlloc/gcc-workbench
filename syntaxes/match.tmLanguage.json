@@ -1,0 +1,68 @@
+{
+  "scopeName": "source.gcc.match",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#c-code-block" },
+    { "include": "#preprocessor" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#operators" },
+    { "include": "#captures" },
+    { "include": "#operator-specs" },
+    { "include": "#constants" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        { "begin": "/\\*", "end": "\\*/", "name": "comment.block.gcc.match" },
+        { "match": "//.*$", "name": "comment.line.double-slash.gcc.match" }
+      ]
+    },
+    "c-code-block": {
+      "begin": "\\{",
+      "end": "\\}",
+      "name": "meta.embedded.block.cpp",
+      "patterns": [
+        { "include": "source.cpp" }
+      ]
+    },
+    "preprocessor": {
+      "match": "^\\s*#\\s*[a-z]+",
+      "name": "meta.preprocessor.gcc.match"
+    },
+    "keywords": {
+      "match": "\\b(match|simplify|define_predicates|define_operator_list|if|switch|for|with)\\b",
+      "name": "keyword.control.gcc.match"
+    },
+    "types": {
+      "patterns": [
+        {
+          "match": "\\b(type|TREE_TYPE)\\b",
+          "name": "storage.type.gcc.match"
+        },
+        {
+          "match": "\\b(void|bool|int|char|short|long|unsigned|signed|float|double|_Bool|int8_t|uint8_t|int16_t|uint16_t|int32_t|uint32_t|int64_t|uint64_t|size_t|ssize_t|auto|const|static)\\b",
+          "name": "storage.type.cpp"
+        }
+      ]
+    },
+    "operators": {
+      "match": "\\b(view_convert|convert|realpart|imagpart|cond|vec_cond|vec_perm|pointer_plus|pointer_diff|plus|minus|mult|mult_highpart|trunc_div|ceil_div|floor_div|round_div|trunc_mod|ceil_mod|floor_mod|round_mod|rdiv|exact_div|fix_trunc|float|negate|min|max|abs|absu|lshift|rshift|lrotate|rrotate|bit_ior|bit_xor|bit_and|bit_not|truth_andif|truth_orif|truth_and|truth_or|truth_xor|truth_not|lt|le|gt|ge|eq|ne|unordered|ordered|unlt|unle|ungt|unge|uneq|ltgt|addr_space_convert|fixed_convert|bit_insert|complex|conj|reduc_max|reduc_min|reduc_plus|dot_prod|widen_sum|sad|fma|widen_mult|widen_mult_plus|widen_mult_minus|widen_lshift)\\??\\b",
+      "name": "support.function.operator.gcc.match"
+    },
+    "captures": {
+      "match": "@@?[a-zA-Z0-9_]+",
+      "name": "variable.other.capture.gcc.match"
+    },
+    "operator-specs": {
+      "match": ":[CcSs]+",
+      "name": "keyword.other.flag.gcc.match"
+    },
+    "constants": {
+      "patterns": [
+        { "match": "\\b(true|false|NULL)\\b", "name": "constant.language.cpp" },
+        { "match": "\\b\\d+\\b", "name": "constant.numeric.decimal.gcc.match" }
+      ]
+    }
+  }
+}

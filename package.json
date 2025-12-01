@@ -1,0 +1,62 @@
+{
+  "name": "gcc-syntax-highlighting",
+  "displayName": "gcc-syntax-highlighting",
+  "description": "Syntax highlighting for GCC RTL, Gimple, Match.pd, and MD files",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.106.1"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+  "languages": [
+    {
+      "id": "gcc-md",
+      "aliases": ["GCC Machine Description", "gcc-md"],
+      "extensions": [".md"],
+      "configuration": "./language-configuration.json"
+    },
+    {
+      "id": "gcc-rtl",
+      "aliases": ["GCC RTL Dump"],
+      "filenamePatterns": ["**/*.[0-9][0-9][0-9]r.*"],
+      "configuration": "./language-configuration.json"
+    },
+    {
+      "id": "gcc-gimple",
+      "aliases": ["GCC Gimple"],
+      "filenamePatterns": ["**/*.[0-9][0-9][0-9]t.*", "**/*.[0-9][0-9][0-9]i.*"],
+      "configuration": "./language-configuration.json"
+    },
+    {
+      "id": "gcc-match",
+      "aliases": ["GCC MatchPD"],
+      "filenames": ["*.pd"],
+      "configuration": "./language-configuration.json"
+    }
+  ],
+  "grammars": [
+    {
+      "language": "gcc-md",
+      "scopeName": "source.gcc.md",
+      "path": "./syntaxes/md.tmLanguage.json"
+    },
+    {
+      "language": "gcc-rtl",
+      "scopeName": "source.gcc.rtl",
+      "path": "./syntaxes/rtl.tmLanguage.json"
+    },
+    {
+      "language": "gcc-gimple",
+      "scopeName": "source.gcc.gimple",
+      "path": "./syntaxes/gimple.tmLanguage.json"
+    },
+    {
+      "language": "gcc-match",
+      "scopeName": "source.gcc.match",
+      "path": "./syntaxes/match.tmLanguage.json"
+    }
+  ]
+}
+}

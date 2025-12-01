@@ -1,0 +1,61 @@
+{
+  "scopeName": "source.gcc.rtl",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#headers" },
+    { "include": "#instructions" },
+    { "include": "#registers" },
+    { "include": "#constants" },
+    { "include": "#modes" },
+    { "include": "#keywords" },
+    { "include": "#strings" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        { "match": ";;.*$", "name": "comment.line.double-semicolon.gcc.rtl" },
+        { "match": ";.*$", "name": "comment.line.semicolon.gcc.rtl" }
+      ]
+    },
+    "headers": {
+      "match": "^;; (basic block|Function) .*$",
+      "name": "markup.heading.gcc.rtl"
+    },
+    "instructions": {
+      "match": "\\((insn|jump_insn|call_insn|note|barrier|code_label|debug_insn)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)",
+      "captures": {
+        "1": { "name": "keyword.control.instruction.gcc.rtl" },
+        "2": { "name": "constant.numeric.uid.gcc.rtl" },
+        "3": { "name": "constant.numeric.prev.gcc.rtl" },
+        "4": { "name": "constant.numeric.next.gcc.rtl" }
+      }
+    },
+    "keywords": {
+      "match": "\\b(set|use|clobber|parallel|asm_input|asm_operands|unspec|unspec_volatile|addr_vec|addr_diff_vec|prefetch|call|return|simple_return|eh_return|trap_if|scratch|strict_low_part|concat|concatn|mem|label_ref|symbol_ref|cc0|compare|plus|minus|neg|mult|ss_mult|us_mult|div|ss_div|us_div|mod|udiv|umod|and|ior|xor|not|ashift|rotate|ashiftrt|lshiftrt|rotatert|smin|smax|umin|umax|pre_dec|pre_inc|post_dec|post_inc|pre_modify|post_modify|unordered|ordered|uneq|unge|ungt|unle|unlt|ltgt|sign_extend|zero_extend|truncate|float_extend|float_truncate|float|fix|unsigned_float|unsigned_fix|fract_convert|unsigned_fract_convert|sat_fract|unsigned_sat_fract|abs|sqrt|bswap|ffs|clrsb|clz|ctz|popcount|parity|sign_extract|zero_extract|high|lo_sum|vec_merge|vec_select|vec_concat|vec_duplicate|vec_series|ss_plus|us_plus|ss_minus|ss_neg|us_neg|ss_abs|ss_ashift|us_ashift|us_minus|ss_truncate|us_truncate|fma|entry_value|exclusion_set|presence_set|final_presence_set|absence_set|final_absence_set|automata_option|attr|set_attr|set_attr_alternative|eq_attr|eq_attr_alt|attr_flag|cond|if_then_else|eq|ne|gt|gtu|lt|ltu|ge|geu|le|leu)\\b",
+      "name": "keyword.operator.gcc.rtl"
+    },
+    "registers": {
+      "match": "\\(reg(/[a-z])?:([A-Z0-9]+)\\s+(\\d+)(\\s+[a-z0-9]+)?\\)",
+      "captures": {
+        "1": { "name": "storage.modifier.flag.gcc.rtl" },
+        "2": { "name": "storage.type.mode.gcc.rtl" },
+        "3": { "name": "variable.parameter.register.gcc.rtl" },
+        "4": { "name": "entity.name.tag.gcc.rtl" }
+      }
+    },
+    "modes": {
+      "match": ":[A-Z0-9]+",
+      "name": "storage.type.mode.gcc.rtl"
+    },
+    "constants": {
+      "match": "\\(const_int\\s+(-?\\d+)\\)",
+      "captures": { "1": { "name": "constant.numeric.integer.gcc.rtl" } }
+    },
+    "strings": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.gcc.rtl",
+      "patterns": [ { "match": "\\\\.", "name": "constant.character.escape.gcc.rtl" } ]
+    }
+  }
+}

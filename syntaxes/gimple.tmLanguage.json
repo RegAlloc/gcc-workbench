@@ -1,0 +1,56 @@
+{
+  "scopeName": "source.gcc.gimple",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#metadata" },
+    { "include": "#phi-nodes" },
+    { "include": "#control-flow" },
+    { "include": "#types" },
+    { "include": "#constants" },
+    { "include": "#strings" },
+    { "include": "#gimple-stmts" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        { "match": ";;.*$", "name": "comment.line.double-semicolon.gcc.gimple" }
+      ]
+    },
+    "metadata": {
+      "patterns": [
+        { "match": "<bb \\d+>", "name": "entity.name.label.basic-block.gcc.gimple" },
+        { "match": "\\[\\d+\\.\\d+%\\]", "name": "constant.numeric.frequency.gcc.gimple" },
+        { "match": "count: \\d+", "name": "constant.numeric.count.gcc.gimple" }
+      ]
+    },
+    "phi-nodes": {
+      "match": "#\\s+([a-zA-Z0-9_]+)\\s+=\\s+PHI\\s+<",
+      "captures": {
+        "1": { "name": "variable.parameter.phi-result.gcc.gimple" }
+      },
+      "name": "meta.phi-node.gcc.gimple"
+    },
+    "control-flow": {
+      "match": "\\b(if|else|goto|return|switch|try|catch|finally)\\b",
+      "name": "keyword.control.gcc.gimple"
+    },
+    "gimple-stmts": {
+      "match": "\\b(gimple_call|gimple_assign|gimple_cond|gimple_label|gimple_switch)\\b",
+      "name": "support.function.gimple-stmt.gcc.gimple"
+    },
+    "types": {
+      "match": "\\b(void|int|char|short|long|unsigned|signed|float|double|_Bool|struct|union|enum|int8_t|uint8_t|int16_t|uint16_t|int32_t|uint32_t|int64_t|uint64_t|size_t|ssize_t)\\b",
+      "name": "storage.type.gcc.gimple"
+    },
+    "constants": {
+      "match": "\\b(NULL|TRUE|FALSE)\\b",
+      "name": "constant.language.gcc.gimple"
+    },
+    "strings": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.gcc.gimple",
+      "patterns": [ { "match": "\\\\.", "name": "constant.character.escape.gcc.gimple" } ]
+    }
+  }
+}
