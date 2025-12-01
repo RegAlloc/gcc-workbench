@@ -57,6 +57,14 @@
       "scopeName": "source.gcc.match",
       "path": "./syntaxes/match.tmLanguage.json"
     }
-  ]
+  ],
+  "configurationDefaults": {
+    "[gcc-md]": {
+      "editor.tabSize": 8
+    },
+    "[gcc-match]": {
+      "editor.tabSize": 8
+    }
+  }
 }
 }
