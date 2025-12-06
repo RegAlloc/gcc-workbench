@@ -13,25 +13,25 @@
     "languages": [
       {
         "id": "gcc-md",
-        "aliases": ["GCC Machine Description", "gcc-md"],
+        "aliases": ["gcc machine description"],
         "extensions": [".md"],
         "configuration": "./language-configuration.json"
       },
       {
         "id": "gcc-rtl",
-        "aliases": ["GCC RTL Dump"],
+        "aliases": ["gcc rtl dump"],
         "filenamePatterns": ["**/*.[0-9][0-9][0-9]r.*"],
         "configuration": "./language-configuration.json"
       },
       {
         "id": "gcc-gimple",
-        "aliases": ["GCC Gimple"],
+        "aliases": ["gcc gimple dump"],
         "filenamePatterns": ["**/*.[0-9][0-9][0-9]t.*", "**/*.[0-9][0-9][0-9]i.*"],
         "configuration": "./language-configuration.json"
       },
       {
         "id": "gcc-match",
-        "aliases": ["GCC MatchPD"],
+        "aliases": ["gcc matchpd"],
         "extensions": [".pd"],
         "configuration": "./language-configuration.json"
       }
