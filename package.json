@@ -10,61 +10,65 @@
     "Programming Languages"
   ],
   "contributes": {
-  "languages": [
-    {
-      "id": "gcc-md",
-      "aliases": ["GCC Machine Description", "gcc-md"],
-      "extensions": [".md"],
-      "configuration": "./language-configuration.json"
-    },
-    {
-      "id": "gcc-rtl",
-      "aliases": ["GCC RTL Dump"],
-      "filenamePatterns": ["**/*.[0-9][0-9][0-9]r.*"],
-      "configuration": "./language-configuration.json"
-    },
-    {
-      "id": "gcc-gimple",
-      "aliases": ["GCC Gimple"],
-      "filenamePatterns": ["**/*.[0-9][0-9][0-9]t.*", "**/*.[0-9][0-9][0-9]i.*"],
-      "configuration": "./language-configuration.json"
-    },
-    {
-      "id": "gcc-match",
-      "aliases": ["GCC MatchPD"],
-      "filenames": ["*.pd"],
-      "configuration": "./language-configuration.json"
-    }
-  ],
-  "grammars": [
-    {
-      "language": "gcc-md",
-      "scopeName": "source.gcc.md",
-      "path": "./syntaxes/md.tmLanguage.json"
-    },
-    {
-      "language": "gcc-rtl",
-      "scopeName": "source.gcc.rtl",
-      "path": "./syntaxes/rtl.tmLanguage.json"
-    },
-    {
-      "language": "gcc-gimple",
-      "scopeName": "source.gcc.gimple",
-      "path": "./syntaxes/gimple.tmLanguage.json"
-    },
-    {
-      "language": "gcc-match",
-      "scopeName": "source.gcc.match",
-      "path": "./syntaxes/match.tmLanguage.json"
-    }
-  ],
-  "configurationDefaults": {
-    "[gcc-md]": {
-      "editor.tabSize": 8
-    },
-    "[gcc-match]": {
-      "editor.tabSize": 8
+    "languages": [
+      {
+        "id": "gcc-md",
+        "aliases": ["GCC Machine Description", "gcc-md"],
+        "extensions": [".md"],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "gcc-rtl",
+        "aliases": ["GCC RTL Dump"],
+        "filenamePatterns": ["**/*.[0-9][0-9][0-9]r.*"],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "gcc-gimple",
+        "aliases": ["GCC Gimple"],
+        "filenamePatterns": ["**/*.[0-9][0-9][0-9]t.*", "**/*.[0-9][0-9][0-9]i.*"],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "gcc-match",
+        "aliases": ["GCC MatchPD"],
+        "extensions": [".pd"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "gcc-md",
+        "scopeName": "source.gcc.md",
+        "path": "./syntaxes/md.tmLanguage.json"
+      },
+      {
+        "language": "gcc-rtl",
+        "scopeName": "source.gcc.rtl",
+        "path": "./syntaxes/rtl.tmLanguage.json"
+      },
+      {
+        "language": "gcc-gimple",
+        "scopeName": "source.gcc.gimple",
+        "path": "./syntaxes/gimple.tmLanguage.json"
+      },
+      {
+        "language": "gcc-match",
+        "scopeName": "source.gcc.match",
+        "path": "./syntaxes/match.tmLanguage.json"
+      }
+    ],
+    "configurationDefaults": {
+      "[gcc-md]": {
+        "editor.tabSize": 8,
+        "editor.detectIndentation": false,
+        "editor.action.changeTabDisplaySize": 8
+      },
+      "[gcc-match]": {
+        "editor.tabSize": 8,
+        "editor.detectIndentation": false,
+        "editor.action.changeTabDisplaySize": 8
+      }
     }
   }
-}
 }
