@@ -107,15 +107,23 @@
 						},
 						{
 							"name": "keyword.control.cpp",
-							"match": "\\b(if|else|while|for|do|switch|case|default|break|continue|return|goto|try|catch|throw|using|namespace|inline)\\b"
+							"match": "\\b(if|else|while|for|do|switch|case|default|break|continue|return|goto|try|catch|throw|using|namespace|inline|DONE|FAIL)\\b"
 						},
 						{
 							"name": "storage.type.cpp",
-							"match": "\\b(int|float|double|char|void|bool|long|short|unsigned|signed|auto|const|volatile|static|register|extern|typedef|struct|class|union|enum)\\b"
+							"match": "\\b(rtx|int|float|double|char|void|bool|long|short|unsigned|signed|auto|const|volatile|static|register|extern|typedef|struct|class|union|enum)\\b"
 						},
 						{
 							"name": "constant.language.cpp",
 							"match": "\\b(true|false|NULL|nullptr)\\b"
+						},
+						{
+							"name": "storage.type.mode.cpp",
+							"match": "\\b([A-Z][A-Z]*mode)\\b"
+						},
+						{
+							"name": "variable.language.cpp",
+							"match": "\\boperands\\s*\\["
 						},
 						{
 							"name": "keyword.operator.cpp",
@@ -132,6 +140,14 @@
 						{
 							"name": "constant.numeric.integer.cpp",
 							"match": "[0-9]+[uUlL]*"
+						},
+						{
+							"name": "variable.other.constant.cpp",
+							"match": "\\b(TARGET_[A-Z0-9_]+)\\b"
+						},
+						{
+							"name": "variable.other.constant.cpp",
+							"match": "\\b(HOST_WIDE_[A-Z0-9_]+)\\b"
 						},
 						{
 							"name": "entity.name.function.cpp",
@@ -226,7 +242,7 @@
 				{
 					"comment": "RTL arithmetic operations",
 					"name": "keyword.operator.arithmetic.gcc-md",
-					"match": "\\b(plus|minus|neg|mult|div|mod|udiv|umod|ss_mult|us_mult|abs|sqrt|fma)\\b"
+					"match": "\\b(plus|minus|neg|mult|div|mod|udiv|umod|ss_mult|us_mult|abs|sqrt|fma|compare)\\b"
 				},
 				{
 					"comment": "RTL bitwise operations",
@@ -274,7 +290,7 @@
 				{
 					"comment": "type and mode modifiers",
 					"name": "storage.type.mode.gcc-md",
-					"match": "\\b(float_extend|float_truncate|sign_extend|zero_extend|truncate|float|fix|unsigned_float|unsigned_fix)\\b"
+					"match": "\\b(float_extend|float_truncate|sign_extend|zero_extend|truncate|float|fix|unsigned_float|unsigned_fix|zero_extract)\\b"
 				},
 				{
 					"comment": "predicate functions",
