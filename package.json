@@ -3,6 +3,7 @@
   "displayName": "gcc-syntax-highlighting",
   "description": "Syntax highlighting for GCC RTL, Gimple, Match.pd, and MD files",
   "version": "0.0.1",
+  "icon": "icon/gcc.png",
   "engines": {
     "vscode": "^1.106.1"
   },
@@ -13,27 +14,43 @@
     "languages": [
       {
         "id": "gcc-md",
-        "aliases": ["gcc machine description"],
+        "aliases": ["GCC Machine Description", "gcc-md"],
         "extensions": [".md"],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icon/gcc.png",
+          "dark": "./icon/gcc.png"
+        }
       },
       {
         "id": "gcc-rtl",
-        "aliases": ["gcc rtl dump"],
+        "aliases": ["GCC RTL Dump"],
         "filenamePatterns": ["**/*.[0-9][0-9][0-9]r.*"],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icon/gcc.png",
+          "dark": "./icon/gcc.png"
+        }
       },
       {
         "id": "gcc-gimple",
-        "aliases": ["gcc gimple dump"],
+        "aliases": ["GCC Gimple"],
         "filenamePatterns": ["**/*.[0-9][0-9][0-9]t.*", "**/*.[0-9][0-9][0-9]i.*"],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icon/gcc.png",
+          "dark": "./icon/gcc.png"
+        }
       },
       {
         "id": "gcc-match",
-        "aliases": ["gcc matchpd"],
+        "aliases": ["GCC MatchPD"],
         "extensions": [".pd"],
-        "configuration": "./language-configuration.json"
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icon/gcc.png",
+          "dark": "./icon/gcc.png"
+        }
       }
     ],
     "grammars": [
