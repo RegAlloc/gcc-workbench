@@ -2,14 +2,20 @@
   "scopeName": "source.gcc.match",
   "patterns": [
     { "include": "#comments" },
+    { "include": "#define-statements" },
     { "include": "#c-code-block" },
     { "include": "#preprocessor" },
+    { "include": "#match-rules" },
+    { "include": "#simplify-rules" },
     { "include": "#keywords" },
-    { "include": "#types" },
     { "include": "#operators" },
+    { "include": "#builtins" },
     { "include": "#captures" },
-    { "include": "#operator-specs" },
-    { "include": "#constants" }
+    { "include": "#types" },
+    { "include": "#conditions" },
+    { "include": "#constants" },
+    { "include": "#strings" },
+    { "include": "#numbers" }
   ],
   "repository": {
     "comments": {
@@ -18,21 +24,64 @@
         { "match": "//.*$", "name": "comment.line.double-slash.gcc.match" }
       ]
     },
+    "define-statements": {
+      "patterns": [
+        {
+          "match": "\\((define_predicates|define_operator_list|define_match_and_simplify)\\b",
+          "captures": { "1": { "name": "keyword.definition.gcc.match" } }
+        },
+        {
+          "match": "\\((define_operator_list)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "keyword.definition.gcc.match" },
+            "2": { "name": "entity.name.constant.operator-list.gcc.match" }
+          }
+        }
+      ]
+    },
+    "match-rules": {
+      "patterns": [
+        {
+          "match": "\\((match)\\b",
+          "captures": { "1": { "name": "keyword.rule.match.gcc.match" } }
+        }
+      ]
+    },
+    "simplify-rules": {
+      "patterns": [
+        {
+          "match": "\\((simplify)\\b",
+          "captures": { "1": { "name": "keyword.rule.simplify.gcc.match" } }
+        }
+      ]
+    },
     "c-code-block": {
       "begin": "\\{",
       "end": "\\}",
       "name": "meta.embedded.block.cpp",
       "patterns": [
-        { "include": "source.cpp" }
+        { "include": "source.c++" }
       ]
     },
     "preprocessor": {
-      "match": "^\\s*#\\s*[a-z]+",
+      "match": "^\\s*#\\s*(include|define|ifdef|ifndef|if|else|endif|error|pragma)\\b",
       "name": "meta.preprocessor.gcc.match"
     },
     "keywords": {
-      "match": "\\b(match|simplify|define_predicates|define_operator_list|if|switch|for|with)\\b",
+      "match": "\\b(match|simplify|if|switch|for|with|else|then|in|cond|cond_len|cond_convert|vec_cond|vec_cond_mask)\\b",
       "name": "keyword.control.gcc.match"
+    },
+    "builtins": {
+      "match": "\\b(BUILT_IN_[A-Z0-9_]+|IFN_[A-Z0-9_]+)\\b",
+      "name": "support.constant.builtin.gcc.match"
+    },
+    "operators": {
+      "match": "\\b(view_convert|convert|realpart|imagpart|cond|cond_len|vec_cond|vec_cond_mask|vec_perm|vec_perm_expr|pointer_plus|pointer_diff|pointer_diff_expr|plus|minus|negate|mult|mult_highpart|trunc_div|ceil_div|floor_div|round_div|trunc_mod|ceil_mod|floor_mod|round_mod|rdiv|exact_div|fix_trunc|float|float_truncate|float_extend|negate|min|max|abs|absu|lshift|rshift|lrotate|rrotate|bit_ior|bit_xor|bit_and|bit_not|bit_insert|truth_andif|truth_orif|truth_and|truth_or|truth_xor|truth_not|lt|le|gt|ge|eq|ne|unordered|ordered|unlt|unle|ungt|unge|uneq|ltgt|addr_space_convert|fixed_convert|complex|conj|reduc_max|reduc_min|reduc_plus|reduc_and|reduc_ior|reduc_xor|dot_prod|sad|widen_sum|widen_mult|widen_mult_plus|widen_mult_minus|widen_lshift|fma|clrsb|clz|ctz|popcount|parity|sqrt|cbrt|hypot|acos|asin|atan|atan2|cos|cosh|exp|expm1|fabs|floor|ceil|log|log1p|log2|log10|sin|sinh|tan|tanh|significand|drem|lgamma|tgamma|fdim|fmax|fmin|fmod|copysign|nextafter|classify|nearbyint|logb|scalbn|round|trunc|rint)\\b",
+      "name": "support.function.operator.gcc.match"
+    },
+    "captures": {
+      "match": "@@?[a-zA-Z_][a-zA-Z0-9_]*",
+      "name": "variable.other.capture.gcc.match"
     },
     "types": {
       "patterns": [
@@ -41,27 +90,28 @@
           "name": "storage.type.gcc.match"
         },
         {
-          "match": "\\b(void|bool|int|char|short|long|unsigned|signed|float|double|_Bool|int8_t|uint8_t|int16_t|uint16_t|int32_t|uint32_t|int64_t|uint64_t|size_t|ssize_t|auto|const|static)\\b",
+          "match": "\\b(void|_Bool|bool|char|int|long|short|float|double|signed|unsigned|int8_t|uint8_t|int16_t|uint16_t|int32_t|uint32_t|int64_t|uint64_t|intptr_t|uintptr_t|size_t|ssize_t|ptrdiff_t|wchar_t|auto|const|volatile|restrict|static|inline|extern)\\b",
           "name": "storage.type.cpp"
         }
       ]
     },
-    "operators": {
-      "match": "\\b(view_convert|convert|realpart|imagpart|cond|vec_cond|vec_perm|pointer_plus|pointer_diff|plus|minus|mult|mult_highpart|trunc_div|ceil_div|floor_div|round_div|trunc_mod|ceil_mod|floor_mod|round_mod|rdiv|exact_div|fix_trunc|float|negate|min|max|abs|absu|lshift|rshift|lrotate|rrotate|bit_ior|bit_xor|bit_and|bit_not|truth_andif|truth_orif|truth_and|truth_or|truth_xor|truth_not|lt|le|gt|ge|eq|ne|unordered|ordered|unlt|unle|ungt|unge|uneq|ltgt|addr_space_convert|fixed_convert|bit_insert|complex|conj|reduc_max|reduc_min|reduc_plus|dot_prod|widen_sum|sad|fma|widen_mult|widen_mult_plus|widen_mult_minus|widen_lshift)\\??\\b",
-      "name": "support.function.operator.gcc.match"
-    },
-    "captures": {
-      "match": "@@?[a-zA-Z0-9_]+",
-      "name": "variable.other.capture.gcc.match"
-    },
-    "operator-specs": {
+    "conditions": {
       "match": ":[CcSs]+",
-      "name": "keyword.other.flag.gcc.match"
+      "name": "keyword.other.condition.gcc.match"
     },
     "constants": {
+      "match": "\\b(true|false|NULL|nullptr|INTEGER_CST|REAL_CST|COMPLEX_CST|STRING_CST|VECTOR_CST)\\b",
+      "name": "constant.language.gcc.match"
+    },
+    "strings": {
+      "match": "\"(?:[^\"\\\\]|\\\\.)*\"",
+      "name": "string.quoted.double.gcc.match"
+    },
+    "numbers": {
       "patterns": [
-        { "match": "\\b(true|false|NULL)\\b", "name": "constant.language.cpp" },
-        { "match": "\\b\\d+\\b", "name": "constant.numeric.decimal.gcc.match" }
+        { "match": "\\b0x[0-9a-fA-F]+\\b", "name": "constant.numeric.hex.gcc.match" },
+        { "match": "\\b-?\\d+\\.\\d+([eE][+-]?\\d+)?\\b", "name": "constant.numeric.float.gcc.match" },
+        { "match": "\\b-?\\d+\\b", "name": "constant.numeric.integer.gcc.match" }
       ]
     }
   }
