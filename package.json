@@ -1,6 +1,6 @@
 {
   "name": "gcc-syntax-highlighting",
-  "displayName": "GCC Syntax Highlighting",
+  "displayName": "GCC Syntax Highlighting Toolkit (RTL, GIMPLE & MD)",
   "description": "Syntax highlighting for GCC RTL, Gimple, Match.pd, and Machine Description files",
   "version": "0.1.1",
   "publisher": "RegAlloc",

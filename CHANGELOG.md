@@ -2,6 +2,10 @@
 
 2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
 
+	0.1.1
+
+2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
+
 	Syntax Previewes
 
 2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>

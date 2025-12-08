@@ -1,4 +1,4 @@
-# gcc-syntax-highlighting – GCC internals in color
+# GCC Syntax Highlighting – GCC internals in color
 
 **Extension version:** 0.0.1
 
