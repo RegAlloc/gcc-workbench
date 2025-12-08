@@ -1,0 +1,687 @@
+
+;; Function sum_array (sum_array, funcdef_no=0, decl_uid=4738, cgraph_uid=1, symbol_order=0)
+
+int sum_array (const int * a, int n)
+{
+  unsigned long ivtmp.18;
+  int i;
+  int s;
+  int _4;
+  void * _5;
+  unsigned long _18;
+  unsigned long _19;
+  unsigned long _21;
+
+  <bb 2> [local count: 118111600]:
+  if (n_8(D) > 0)
+    goto <bb 3>; [89.00%]
+  else
+    goto <bb 5>; [11.00%]
+
+  <bb 3> [local count: 105119324]:
+  ivtmp.18_13 = (unsigned long) a_10(D);
+  _18 = (unsigned long) n_8(D);
+  _19 = _18 * 4;
+  _21 = ivtmp.18_13 + _19;
+
+  <bb 4> [local count: 955630225]:
+  # s_14 = PHI <s_11(4), 0(3)>
+  # ivtmp.18_6 = PHI <ivtmp.18_7(4), ivtmp.18_13(3)>
+  _5 = (void *) ivtmp.18_6;
+  _4 = MEM[(const int *)_5];
+  s_11 = _4 + s_14;
+  ivtmp.18_7 = ivtmp.18_6 + 4;
+  if (ivtmp.18_7 != _21)
+    goto <bb 4>; [89.00%]
+  else
+    goto <bb 5>; [11.00%]
+
+  <bb 5> [local count: 118111600]:
+  # s_15 = PHI <s_11(4), 0(2)>
+  return s_15;
+
+}
+
+
+
+;; Function scale_array (scale_array, funcdef_no=1, decl_uid=4749, cgraph_uid=2, symbol_order=1)
+
+void scale_array (float * a, int n, float factor)
+{
+  unsigned long ivtmp.28;
+  int i;
+  float _4;
+  float _5;
+  void * _7;
+  unsigned long _21;
+  unsigned long _22;
+  unsigned long _24;
+
+  <bb 2> [local count: 118111600]:
+  if (n_9(D) > 0)
+    goto <bb 3>; [89.00%]
+  else
+    goto <bb 5>; [11.00%]
+
+  <bb 3> [local count: 105119324]:
+  ivtmp.28_19 = (unsigned long) a_10(D);
+  _21 = (unsigned long) n_9(D);
+  _22 = _21 * 4;
+  _24 = ivtmp.28_19 + _22;
+
+  <bb 4> [local count: 955630225]:
+  # ivtmp.28_14 = PHI <ivtmp.28_15(4), ivtmp.28_19(3)>
+  _7 = (void *) ivtmp.28_14;
+  _4 = MEM[(float *)_7];
+  _5 = _4 * factor_11(D);
+  MEM[(float *)_7] = _5;
+  ivtmp.28_15 = ivtmp.28_14 + 4;
+  if (ivtmp.28_15 != _24)
+    goto <bb 4>; [89.00%]
+  else
+    goto <bb 5>; [11.00%]
+
+  <bb 5> [local count: 118111600]:
+  return;
+
+}
+
+
+
+;; Function find_max (find_max, funcdef_no=2, decl_uid=4758, cgraph_uid=3, symbol_order=2)
+
+int find_max (const int * a, int n)
+{
+  sizetype ivtmp.37;
+  int i;
+  int maxv;
+  int _4;
+  int _5;
+  int _8;
+
+  <bb 2> [local count: 118980155]:
+  if (n_9(D) <= 0)
+    goto <bb 5>; [0.73%]
+  else
+    goto <bb 3>; [99.27%]
+
+  <bb 3> [local count: 118111600]:
+  maxv_12 = *a_11(D);
+  if (n_9(D) != 1)
+    goto <bb 4>; [89.00%]
+  else
+    goto <bb 5>; [11.00%]
+
+  <bb 4> [local count: 955630224]:
+  # maxv_16 = PHI <_5(4), maxv_12(3)>
+  # ivtmp.37_14 = PHI <ivtmp.37_15(4), 1(3)>
+  _4 = MEM[(const int *)a_11(D) + ivtmp.37_14 * 4];
+  _5 = MAX_EXPR <_4, maxv_16>;
+  ivtmp.37_15 = ivtmp.37_14 + 1;
+  i_18 = (int) ivtmp.37_15;
+  if (n_9(D) > i_18)
+    goto <bb 4>; [89.00%]
+  else
+    goto <bb 5>; [11.00%]
+
+  <bb 5> [local count: 118980155]:
+  # _8 = PHI <-1(2), _5(4), maxv_12(3)>
+  return _8;
+
+}
+
+
+
+;; Function reverse_chars (reverse_chars, funcdef_no=3, decl_uid=4767, cgraph_uid=4, symbol_order=3)
+
+void reverse_chars (char * s)
+{
+  unsigned long ivtmp.50;
+  unsigned long ivtmp.47;
+  char tmp;
+  int i;
+  int n;
+  long unsigned int _1;
+  char * _4;
+  char _8;
+  sizetype _9;
+  int _21;
+  int _28;
+  void * _30;
+
+  <bb 2> [local count: 118111600]:
+  _1 = strlen (s_13(D));
+  n_14 = (int) _1;
+  _21 = n_14 / 2;
+  if (n_14 > 1)
+    goto <bb 4>; [89.00%]
+  else
+    goto <bb 3>; [11.00%]
+
+  <bb 3> [local count: 118111600]:
+  return;
+
+  <bb 4> [local count: 105119324]:
+  _28 = n_14 + -1;
+  _9 = (sizetype) _28;
+  _4 = s_13(D) + _9;
+  ivtmp.50_19 = (unsigned long) _4;
+
+  <bb 5> [local count: 955630225]:
+  # ivtmp.47_27 = PHI <ivtmp.47_26(5), 0(4)>
+  # ivtmp.50_25 = PHI <ivtmp.50_20(5), ivtmp.50_19(4)>
+  tmp_15 = MEM[(char *)s_13(D) + ivtmp.47_27 * 1];
+  _30 = (void *) ivtmp.50_25;
+  _8 = MEM[(char *)_30];
+  MEM[(char *)s_13(D) + ivtmp.47_27 * 1] = _8;
+  MEM[(char *)_30] = tmp_15;
+  ivtmp.47_26 = ivtmp.47_27 + 1;
+  ivtmp.50_20 = ivtmp.50_25 + 18446744073709551615;
+  i_32 = (int) ivtmp.47_26;
+  if (_21 > i_32)
+    goto <bb 5>; [89.00%]
+  else
+    goto <bb 3>; [11.00%]
+
+}
+
+
+
+;; Function update_records (update_records, funcdef_no=4, decl_uid=4778, cgraph_uid=5, symbol_order=4)
+
+void update_records (struct Record * rec, int count)
+{
+  unsigned long ivtmp.61;
+  int i;
+  int _4;
+  int _5;
+  int _6;
+  int _7;
+  void * _11;
+  unsigned long _12;
+  int _15;
+  long unsigned int _23;
+  char[32] * _24;
+  long unsigned int _25;
+  char[32] * _26;
+  unsigned long _27;
+  unsigned long _29;
+  unsigned long _30;
+  unsigned long _31;
+  char[32] * _33;
+
+  <bb 2> [local count: 118111600]:
+  if (count_17(D) > 0)
+    goto <bb 3>; [89.00%]
+  else
+    goto <bb 8>; [11.00%]
+
+  <bb 3> [local count: 105119324]:
+  _33 = rec_18(D) + 8;
+  ivtmp.61_34 = (unsigned long) _33;
+  _31 = (unsigned long) count_17(D);
+  _30 = _31 * 40;
+  _27 = (unsigned long) rec_18(D);
+  _29 = _27 + 8;
+  _12 = _29 + _30;
+
+  <bb 4> [local count: 955630225]:
+  # ivtmp.61_36 = PHI <ivtmp.61_35(7), ivtmp.61_34(3)>
+  _11 = (void *) ivtmp.61_36;
+  _4 = MEM[(int *)_11 + -4B];
+  _5 = MEM[(int *)_11 + -8B];
+  _6 = _5 * 3;
+  _7 = _4 + _6;
+  MEM[(int *)_11 + -4B] = _7;
+  _15 = _7 & 1;
+  if (_15 == 0)
+    goto <bb 5>; [50.00%]
+  else
+    goto <bb 6>; [50.00%]
+
+  <bb 5> [local count: 477815112]:
+  _23 = __builtin_strlen (_11);
+  _24 = _11 + _23;
+  __builtin_memcpy (_24, "_EVEN", 6);
+  goto <bb 7>; [100.00%]
+
+  <bb 6> [local count: 477815112]:
+  _25 = __builtin_strlen (_11);
+  _26 = _11 + _25;
+  __builtin_memcpy (_26, "_ODD", 5);
+
+  <bb 7> [local count: 955630225]:
+  ivtmp.61_35 = ivtmp.61_36 + 40;
+  if (_12 != ivtmp.61_35)
+    goto <bb 4>; [89.00%]
+  else
+    goto <bb 8>; [11.00%]
+
+  <bb 8> [local count: 118111600]:
+  return;
+
+}
+
+
+
+;; Function count_matches (count_matches, funcdef_no=5, decl_uid=4787, cgraph_uid=6, symbol_order=5)
+
+int count_matches (const char * s, char c)
+{
+  unsigned long ivtmp.73;
+  int i;
+  int cnt;
+  void * _7;
+  char _14;
+  char _16;
+  const char * _17;
+  char _27;
+
+  <bb 2> [local count: 118111600]:
+  _16 = *s_8(D);
+  if (_16 != 0)
+    goto <bb 3>; [89.00%]
+  else
+    goto <bb 7>; [11.00%]
+
+  <bb 3> [local count: 105119324]:
+  _17 = s_8(D) + 1;
+  ivtmp.73_18 = (unsigned long) _17;
+
+  <bb 4> [local count: 955630225]:
+  # _14 = PHI <_16(3), _27(6)>
+  # cnt_15 = PHI <0(3), cnt_23(6)>
+  # ivtmp.73_1 = PHI <ivtmp.73_18(3), ivtmp.73_20(6)>
+  if (c_10(D) == _14)
+    goto <bb 5>; [34.00%]
+  else
+    goto <bb 6>; [66.00%]
+
+  <bb 5> [local count: 324914280]:
+  cnt_22 = cnt_15 + 1;
+
+  <bb 6> [local count: 955630225]:
+  # cnt_23 = PHI <cnt_15(4), cnt_22(5)>
+  ivtmp.73_20 = ivtmp.73_1 + 1;
+  _7 = (void *) ivtmp.73_20;
+  _27 = MEM[(const char *)_7 + -1B];
+  if (_27 != 0)
+    goto <bb 4>; [89.00%]
+  else
+    goto <bb 7>; [11.00%]
+
+  <bb 7> [local count: 118111600]:
+  # cnt_19 = PHI <cnt_23(6), 0(2)>
+  return cnt_19;
+
+}
+
+
+
+;; Function compute_checksum (compute_checksum, funcdef_no=6, decl_uid=4797, cgraph_uid=7, symbol_order=6)
+
+int compute_checksum (const uint8_t * b, int n)
+{
+  unsigned long ivtmp.82;
+  int i;
+  uint32_t sum;
+  unsigned char _3;
+  unsigned int _4;
+  unsigned int _5;
+  unsigned int _6;
+  unsigned long _27;
+  unsigned long _29;
+  void * _30;
+  unsigned int _34;
+  int _36;
+  int prephitmp_37;
+
+  <bb 2> [local count: 118111600]:
+  if (n_11(D) > 0)
+    goto <bb 3>; [89.00%]
+  else
+    goto <bb 6>; [11.00%]
+
+  <bb 3> [local count: 105119324]:
+  ivtmp.82_31 = (unsigned long) b_14(D);
+  _29 = (unsigned long) n_11(D);
+  _27 = _29 + ivtmp.82_31;
+
+  <bb 4> [local count: 955630225]:
+  # sum_19 = PHI <sum_16(4), 0(3)>
+  # ivtmp.82_33 = PHI <ivtmp.82_32(4), ivtmp.82_31(3)>
+  _30 = (void *) ivtmp.82_33;
+  _3 = MEM[(const uint8_t *)_30];
+  _4 = (unsigned int) _3;
+  sum_15 = _4 + sum_19;
+  _5 = sum_15 & 65535;
+  _6 = sum_15 >> 16;
+  sum_16 = _5 + _6;
+  ivtmp.82_32 = ivtmp.82_33 + 1;
+  if (_27 != ivtmp.82_32)
+    goto <bb 4>; [89.00%]
+  else
+    goto <bb 5>; [11.00%]
+
+  <bb 5> [local count: 105119324]:
+  _34 = sum_16 & 65535;
+  _36 = (int) _34;
+
+  <bb 6> [local count: 118111600]:
+  # prephitmp_37 = PHI <_36(5), 0(2)>
+  return prephitmp_37;
+
+}
+
+
+
+;; Function matrix_add (matrix_add, funcdef_no=7, decl_uid=4810, cgraph_uid=8, symbol_order=7)
+
+void matrix_add (int m, int n, const int * A, const int * B, int * C)
+{
+  unsigned int ivtmp.101;
+  long unsigned int ivtmp.97;
+  int idx;
+  int j;
+  int i;
+  int _1;
+  int _5;
+  int _7;
+  int _9;
+  unsigned int _12;
+  long unsigned int _25;
+  long unsigned int _26;
+  long unsigned int _27;
+  long unsigned int _35;
+
+  <bb 2> [local count: 14598063]:
+  if (m_15(D) > 0)
+    goto <bb 3>; [89.00%]
+  else
+    goto <bb 9>; [11.00%]
+
+  <bb 3> [local count: 12992276]:
+  _12 = (unsigned int) n_16(D);
+  goto <bb 8>; [100.00%]
+
+  <bb 4> [local count: 105119324]:
+  # ivtmp.101_3 = PHI <ivtmp.101_24(8), ivtmp.101_31(6)>
+  # i_4 = PHI <i_28(8), i_32(6)>
+  _1 = (int) ivtmp.101_3;
+  _35 = (long unsigned int) _1;
+  ivtmp.97_38 = _35 * 4;
+  _27 = (long unsigned int) n_16(D);
+  _26 = _27 + _35;
+  _25 = _26 * 4;
+
+  <bb 5> [local count: 955630225]:
+  # ivtmp.97_36 = PHI <ivtmp.97_37(5), ivtmp.97_38(4)>
+  _5 = MEM[(const int *)A_19(D) + ivtmp.97_36 * 1];
+  _7 = MEM[(const int *)B_20(D) + ivtmp.97_36 * 1];
+  _9 = _5 + _7;
+  MEM[(int *)C_21(D) + ivtmp.97_36 * 1] = _9;
+  ivtmp.97_37 = ivtmp.97_36 + 4;
+  if (_25 != ivtmp.97_37)
+    goto <bb 5>; [89.00%]
+  else
+    goto <bb 6>; [11.00%]
+
+  <bb 6> [local count: 105119324]:
+  i_32 = i_4 + 1;
+  ivtmp.101_31 = ivtmp.101_3 + _12;
+  if (m_15(D) != i_32)
+    goto <bb 4>; [89.00%]
+  else
+    goto <bb 9>; [11.00%]
+
+  <bb 7> [local count: 12992276]:
+  i_17 = i_28 + 1;
+  ivtmp.101_13 = _12 + ivtmp.101_24;
+  if (m_15(D) != i_17)
+    goto <bb 8>; [89.00%]
+  else
+    goto <bb 9>; [11.00%]
+
+  <bb 8> [local count: 24555402]:
+  # i_28 = PHI <i_17(7), 0(3)>
+  # ivtmp.101_24 = PHI <ivtmp.101_13(7), 0(3)>
+  if (n_16(D) > 0)
+    goto <bb 4>; [66.92%]
+  else
+    goto <bb 7>; [33.08%]
+
+  <bb 9> [local count: 14598063]:
+  return;
+
+}
+
+
+
+;; Function bubble_sort (bubble_sort, funcdef_no=8, decl_uid=4825, cgraph_uid=9, symbol_order=8)
+
+void bubble_sort (int * a, int n)
+{
+  unsigned int ivtmp.117;
+  unsigned long ivtmp.110;
+  int j;
+  int i;
+  int _4;
+  int _8;
+  unsigned long _9;
+  void * _14;
+  unsigned int _26;
+  unsigned long _33;
+  unsigned long _35;
+  unsigned long _38;
+  int _44;
+
+  <bb 2> [local count: 14598063]:
+  if (n_17(D) > 0)
+    goto <bb 3>; [89.00%]
+  else
+    goto <bb 11>; [11.00%]
+
+  <bb 3> [local count: 12992276]:
+  ivtmp.117_43 = (unsigned int) n_17(D);
+  goto <bb 10>; [100.00%]
+
+  <bb 4> [local count: 105119324]:
+  ivtmp.110_12 = (unsigned long) a_19(D);
+  _26 = ivtmp.117_41 + 4294967294;
+  _9 = (unsigned long) _26;
+  _35 = _9 * 4;
+  _33 = ivtmp.110_12 + 4;
+  _38 = _33 + _35;
+
+  <bb 5> [local count: 955630225]:
+  # ivtmp.110_10 = PHI <ivtmp.110_11(7), ivtmp.110_12(4)>
+  _14 = (void *) ivtmp.110_10;
+  _4 = MEM[(int *)_14];
+  _8 = MEM[(int *)_14 + 4B];
+  if (_4 > _8)
+    goto <bb 6>; [50.00%]
+  else
+    goto <bb 7>; [50.00%]
+
+  <bb 6> [local count: 477815112]:
+  MEM[(int *)_14] = _8;
+  MEM[(int *)_14 + 4B] = _4;
+
+  <bb 7> [local count: 955630225]:
+  ivtmp.110_11 = ivtmp.110_10 + 4;
+  if (ivtmp.110_11 != _38)
+    goto <bb 5>; [89.00%]
+  else
+    goto <bb 12>; [11.00%]
+
+  <bb 8> [local count: 12992276]:
+  ivtmp.117_42 = ivtmp.117_41 + 4294967295;
+  if (ivtmp.117_42 != 0)
+    goto <bb 9>; [0.00%]
+  else
+    goto <bb 11>; [100.00%]
+
+  <bb 9> [local count: 105119324]:
+  # ivtmp.117_40 = PHI <ivtmp.117_42(8), ivtmp.117_39(12)>
+
+  <bb 10> [local count: 118111600]:
+  # ivtmp.117_41 = PHI <ivtmp.117_40(9), ivtmp.117_43(3)>
+  _44 = (int) ivtmp.117_41;
+  if (_44 > 1)
+    goto <bb 4>; [89.00%]
+  else
+    goto <bb 8>; [11.00%]
+
+  <bb 11> [local count: 14598063]:
+  return;
+
+  <bb 12> [local count: 105119324]:
+  ivtmp.117_39 = ivtmp.117_41 + 4294967295;
+  goto <bb 9>; [100.00%]
+
+}
+
+
+
+;; Function fibonacci (fibonacci, funcdef_no=9, decl_uid=4839, cgraph_uid=10, symbol_order=9)
+
+int fibonacci (int n)
+{
+  int f2;
+  int i;
+  int f1;
+  int f0;
+  int _1;
+  int _4;
+  unsigned int _8;
+  unsigned int _9;
+
+  <bb 2> [local count: 160390549]:
+  if (n_5(D) <= 1)
+    goto <bb 5>; [26.36%]
+  else
+    goto <bb 3>; [73.64%]
+
+  <bb 3> [local count: 118111600]:
+  _9 = (unsigned int) n_5(D);
+  _8 = _9 + 1;
+  _1 = (int) _8;
+
+  <bb 4> [local count: 955630226]:
+  # f0_13 = PHI <f1_14(4), 0(3)>
+  # f1_14 = PHI <f2_10(4), 1(3)>
+  # i_6 = PHI <i_12(4), 2(3)>
+  f2_10 = f0_13 + f1_14;
+  i_12 = i_6 + 1;
+  if (_1 != i_12)
+    goto <bb 4>; [89.00%]
+  else
+    goto <bb 5>; [11.00%]
+
+  <bb 5> [local count: 160390549]:
+  # _4 = PHI <n_5(D)(2), f2_10(4)>
+  return _4;
+
+}
+
+
+
+;; Function main (main, funcdef_no=10, decl_uid=4850, cgraph_uid=11, symbol_order=10) (executed once)
+
+int main ()
+{
+  unsigned long ivtmp.158;
+  unsigned long ivtmp.151;
+  sizetype ivtmp.139;
+  int i;
+  int i;
+  int i;
+  int i;
+  int i;
+  int sortarr[8];
+  int C[9];
+  int B[9];
+  int A[9];
+  struct Record rec[3];
+  char str[64];
+  float farr[10];
+  void * _1;
+  float _3;
+  float _4;
+  void * _5;
+  int _7;
+  unsigned long _13;
+  unsigned int _24;
+  unsigned int _40;
+  float _46;
+  float _47;
+
+  <bb 2> [local count: 32534376]:
+  ivtmp.158_8 = (unsigned long) &farr;
+
+  <bb 3> [local count: 325379566]:
+  # i_36 = PHI <i_39(3), 0(2)>
+  # ivtmp.158_9 = PHI <ivtmp.158_12(3), ivtmp.158_8(2)>
+  _3 = (float) i_36;
+  _4 = _3 * 1.25e+0;
+  _5 = (void *) ivtmp.158_9;
+  MEM[(float *)_5] = _4;
+  i_39 = i_36 + 1;
+  ivtmp.158_12 = ivtmp.158_9 + 4;
+  if (i_39 != 10)
+    goto <bb 3>; [90.91%]
+  else
+    goto <bb 4>; [9.09%]
+
+  <bb 4> [local count: 29577001]:
+  _13 = ivtmp.158_8 + 40;
+
+  <bb 5> [local count: 263232680]:
+  # ivtmp.151_11 = PHI <ivtmp.151_14(5), ivtmp.158_8(4)>
+  _1 = (void *) ivtmp.151_11;
+  _46 = MEM[(float *)_1];
+  _47 = _46 * 7.5e-1;
+  MEM[(float *)_1] = _47;
+  ivtmp.151_14 = ivtmp.151_11 + 4;
+  if (_13 != ivtmp.151_14)
+    goto <bb 5>; [89.00%]
+  else
+    goto <bb 6>; [11.00%]
+
+  <bb 6> [local count: 32534376]:
+  str = "hello_world_test_case";
+  reverse_chars (&str);
+  rec = *lC0;
+  update_records (&rec, 3);
+
+  <bb 7> [local count: 292809379]:
+  # i_56 = PHI <i_35(7), 0(6)>
+  # ivtmp.139_55 = PHI <ivtmp.139_57(7), 1(6)>
+  MEM[(int *)&A + -4B + ivtmp.139_55 * 4] = i_56;
+  _40 = (unsigned int) i_56;
+  _24 = _40 * 2;
+  _7 = (int) _24;
+  MEM[(int *)&B + -4B + ivtmp.139_55 * 4] = _7;
+  i_35 = i_56 + 1;
+  ivtmp.139_57 = ivtmp.139_55 + 1;
+  if (i_35 != 9)
+    goto <bb 7>; [90.00%]
+  else
+    goto <bb 8>; [10.00%]
+
+  <bb 8> [local count: 32534376]:
+  matrix_add (3, 3, &A, &B, &C);
+  sortarr = *lC1;
+  bubble_sort (&sortarr, 8);
+  farr ={v} {CLOBBER(eol)};
+  str ={v} {CLOBBER(eol)};
+  rec ={v} {CLOBBER(eol)};
+  A ={v} {CLOBBER(eol)};
+  B ={v} {CLOBBER(eol)};
+  C ={v} {CLOBBER(eol)};
+  sortarr ={v} {CLOBBER(eol)};
+  return 0;
+
+}
+
+

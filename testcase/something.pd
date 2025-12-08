@@ -1,0 +1,84 @@
+/* something.pd -- GIMPLE Match-and-Simplify Rules
+   Contains algebraic simplifications for a fictional target. */
+
+/* 1. Bitwise Simplifications
+   Optimizing redundant bitwise logic is the bread and butter of early passes. */
+
+(simplify
+ (bit_and (bit_ior @0 @1) (bit_not @0))
+ (if (INTEGRAL_TYPE_P (type))
+  (bit_and @1 (bit_not @0))))
+
+(simplify
+ (bit_ior (bit_and @0 @1) (bit_not @0))
+ (if (INTEGRAL_TYPE_P (type))
+  (bit_ior @1 (bit_not @0))))
+
+/* Simplify (x | y) & x -> x */
+(simplify
+ (bit_and:c (bit_ior:c @0 @1) @0)
+ @0)
+
+/* Simplify (x & y) | x -> x */
+(simplify
+ (bit_ior:c (bit_and:c @0 @1) @0)
+ @0)
+
+
+/* 2. Arithmetic Canonicalization
+   We want constants to move to the right or outer edges to help value numbering. */
+
+/* Transform (x + c1) + c2 -> x + (c1 + c2) */
+(simplify
+ (plus (plus @0 INTEGER_CST@1) INTEGER_CST@2)
+ (plus @0 (plus @1 @2)))
+
+/* Transform (x * c1) * c2 -> x * (c1 * c2) */
+(simplify
+ (mult (mult @0 INTEGER_CST@1) INTEGER_CST@2)
+ (mult @0 (mult @1 @2)))
+
+
+/* 3. Strength Reduction (Shift substitution)
+   Compilers usually prefer shifts over multiplication/division for powers of 2. */
+
+/* x * 2 -> x << 1 */
+(simplify
+ (mult @0 integer_pow2p@1)
+ (lshift @0 { build_int_cst (integer_type_node, tree_log2 (@1)); }))
+
+/* x / 2^k -> x >> k (unsigned only to avoid sign extension mess) */
+(simplify
+ (trunc_div @0 integer_pow2p@1)
+ (if (TYPE_UNSIGNED (type))
+  (rshift @0 { build_int_cst (integer_type_node, tree_log2 (@1)); })))
+
+
+/* 4. Comparison Simplifications
+   Folding boolean checks is critical for dead code elimination. */
+
+/* (x | 1) != 0 -> true */
+(simplify
+ (ne (bit_ior @0 integer_onep) integer_zerop)
+ { constant_boolean_node (true, type); })
+
+/* (x & 1) == 2 -> false (impossible bitmask) */
+(simplify
+ (eq (bit_and @0 integer_onep) { build_int_cst (type, 2); })
+ { constant_boolean_node (false, type); })
+
+/* max(x, x) -> x */
+(simplify
+ (max @0 @0)
+ @0)
+
+
+/* 5. Pointer Arithmetic
+   Simplify pointer tagging operations common in runtimes. */
+
+/* (ptr + 0) -> ptr */
+(simplify
+ (pointer_plus @0 integer_zerop)
+ @0)
+
+/* End of something.pd */
