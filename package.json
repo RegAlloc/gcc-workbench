@@ -1,9 +1,18 @@
 {
   "name": "gcc-syntax-highlighting",
-  "displayName": "gcc-syntax-highlighting",
-  "description": "Syntax highlighting for GCC RTL, Gimple, Match.pd, and MD files",
-  "version": "0.0.1",
+  "displayName": "GCC Syntax Highlighting",
+  "description": "Syntax highlighting for GCC RTL, Gimple, Match.pd, and Machine Description files",
+  "version": "0.1.0",
+  "publisher": "RegAlloc",
   "icon": "icon/gcc.png",
+  "keywords": [
+  "gcc", "gnu",
+  "rtl",
+  "gimple",
+  "compiler",
+  "powerpc",
+  "aarch64", "toolchain"
+],
   "engines": {
     "vscode": "^1.106.1"
   },
