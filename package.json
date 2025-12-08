@@ -9,6 +9,10 @@
     "type": "git",
     "url": "https://github.com/RegAlloc/gcc-syntax-highlighting/"
   },
+  "bugs": {
+    "url": "https://github.com/RegAlloc/gcc-syntax-highlighting/issues"
+  },
+  "homepage": "https://github.com/RegAlloc/gcc-syntax-highlighting/",
   "_license": {
     "name": "GPL-3.0-or-later",
     "copyright": "Copyright (C) 2025 Kishan Parmar",

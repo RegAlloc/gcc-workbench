@@ -53,7 +53,11 @@ In short, this repo is useful any time you are:
 ### GCC Machine Description
 ![GCC Machine Description](pictures/GCC-Machine-Description.png)
 
-### GCC RTL dumps
-<video controls width="100%">
-  <source src="pictures/RTL.mp4" type="video/mp4">
-</video>
+## Publisher Trust & Security
+
+This extension is open-source and published by Kishan Parmar.
+
+Source code is publicly available on GitHub and can be audited by anyone.
+
+No telemetry, tracking, or data collection is performed by this extension.
+
