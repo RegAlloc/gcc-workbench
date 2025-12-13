@@ -1,5 +1,13 @@
 # Changelog
 
+2025-12-13  Kishan Parmar  <kparmar2101@gmail.com>
+
+	GCC Option files and DejaGnu expect scripts
+
+2025-12-13  Kishan Parmar  <kparmar2101@gmail.com>
+
+	0.1.4
+
 2025-12-12  Kishan Parmar  <kparmar2101@gmail.com>
 
 	Add support for RS6000 builtins

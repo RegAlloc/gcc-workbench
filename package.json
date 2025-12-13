@@ -121,6 +121,34 @@
           "light": "./pictures/gcc.png",
           "dark": "./pictures/gcc.png"
         }
+      },
+      {
+        "id": "gcc-exp",
+        "aliases": [
+          "GCC Expression"
+        ],
+        "extensions": [
+          ".exp"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./pictures/gcc.png",
+          "dark": "./pictures/gcc.png"
+        }
+      },
+      {
+        "id": "gcc-opt",
+        "aliases": [
+          "GCC Options"
+        ],
+        "extensions": [
+          ".opt"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./pictures/gcc.png",
+          "dark": "./pictures/gcc.png"
+        }
       }
     ],
     "grammars": [
@@ -153,6 +181,16 @@
         "language": "gcc-match",
         "scopeName": "source.gcc.match",
         "path": "./syntaxes/match.tmLanguage.json"
+      },
+      {
+        "language": "gcc-exp",
+        "scopeName": "source.gcc.exp",
+        "path": "./syntaxes/exp.tmLanguage.json"
+      },
+      {
+        "language": "gcc-opt",
+        "scopeName": "source.gcc.opt",
+        "path": "./syntaxes/opt.tmLanguage.json"
       }
     ],
     "configurationDefaults": {
@@ -167,7 +205,8 @@
         "editor.action.changeTabDisplaySize": 8
       },
       "files.associations": {
-        "t-*": "makefile"
+        "t-*": "makefile",
+        "config.gcc": "shellscript"
       }
     }
   }

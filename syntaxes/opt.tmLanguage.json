@@ -1,0 +1,97 @@
+{
+  "_license": {
+    "name": "GPL-3.0-or-later",
+    "copyright": "Copyright (C) 2025 Kishan Parmar",
+    "notice": "This file is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version. This file is distributed WITHOUT ANY WARRANTY. See https://www.gnu.org/licenses/ for details."
+  },
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "GCC Options",
+  "scopeName": "source.gcc.opt",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#enum-records"
+    },
+    {
+      "include": "#properties"
+    },
+    {
+      "include": "#option-names"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "match": "(;|#).*$",
+          "name": "comment.line.gcc.opt"
+        }
+      ]
+    },
+    "enum-records": {
+      "comment": "Matches the specific Enum definition block",
+      "patterns": [
+        {
+          "match": "^Enum\\b",
+          "name": "keyword.control.definition.enum.gcc.opt"
+        },
+        {
+          "match": "\\b(Name|Type)\\s*\\(([a-zA-Z0-9_ ]+)\\)",
+          "captures": {
+            "1": {
+              "name": "storage.type.keyword.gcc.opt"
+            },
+            "2": {
+              "name": "entity.name.type.enum.gcc.opt"
+            }
+          }
+        },
+        {
+          "match": "\\b(UnknownError)\\s*\\(([^)]+)\\)",
+          "captures": {
+            "1": {
+              "name": "keyword.control.exception.gcc.opt"
+            },
+            "2": {
+              "name": "string.quoted.double.error-message.gcc.opt"
+            }
+          }
+        }
+      ]
+    },
+    "option-names": {
+      "comment": "An Option Name is strictly a single word on a line (no spaces).",
+      "match": "^[a-zA-Z0-9_\\-=+]+$",
+      "name": "entity.name.function.option.gcc.opt"
+    },
+    "properties": {
+      "patterns": [
+        {
+          "match": "\\b(Common|Target|Driver|LTO|C|C\\+\\+|Fortran|ObjC|ObjC\\+\\+|Go|Ada|D|Modula-2|Rust)\\b",
+          "name": "keyword.control.language.gcc.opt"
+        },
+        {
+          "match": "\\b(Var|Init|Enum|Mask|InverseMask|Alias|IntegerRange)\\s*\\(([^)]+)\\)",
+          "captures": {
+            "1": {
+              "name": "storage.type.keyword.gcc.opt"
+            },
+            "2": {
+              "name": "variable.parameter.attribute-value.gcc.opt"
+            }
+          }
+        },
+        {
+          "match": "\\b(Joined|Separate|JoinedOrMissing|MissingArgError|Args|Optimization|Warning|Undocumented|RejectNegative|Negative|UInteger|String|Set|Value|Host_Wide_Int|ToLower|Report|Ignore|ByteSize|NoDriverArg)\\b",
+          "name": "storage.modifier.attribute.gcc.opt"
+        },
+        {
+          "match": "\\b[0-9]+\\b",
+          "name": "constant.numeric.integer.gcc.opt"
+        }
+      ]
+    }
+  }
+}

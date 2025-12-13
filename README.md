@@ -7,58 +7,53 @@ It is aimed at people working on GCC itself or regularly reading GCC dumps.
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later).
+This project is licensed under the **GNU General Public License v3.0 or later (GPL-3.0-or-later)**.
 
 See the [LICENSE](./LICENSE) file for details.
 
+### Credits & Legal
+* **DejaGnu expect scripts (.exp) Syntax:** The syntax highlighting for `.exp` files in this extension is a derivative work based on the [vscode-tcl](https://github.com/bitwisecook/vscode-tcl/tree/master) repository by **James Deucker** (Copyright (c) 2019), which is licensed under the **MIT License**.
+    * *Modifications:* The original YAML logic was converted to JSON and adapted for GCC DejaGnu expect scripts by Kishan Parmar in 2025.
+* **All other files:** Original work licensed under GPL-3.0-or-later.
+
+---
 
 ## What this is useful for
 
-When hacking on GCC you often need to read and understand:
+When hacking on GCC, you often need to read and understand complex internal formats. Reading all of this as plain, uncolored text is painful. This extension provides TextMate grammars to support the following:
 
-- **Machine description files (`.md`)**
-  - `define_insn`, `define_expand`, `define_split`, `define_peephole2`, iterators, attributes, `match_operand`, and RTL patterns.
-  - Embedded C/C++ blocks inside MD files.
-- **RTL dumps** (files like `foo.c.176r.expand`)
-  - `insn`, `jump_insn`, `call_insn`, `note`, `barrier`, `code_label`, `debug_insn` records.
-  - `set`, `parallel`, `clobber`, `use`, arithmetic and logical RTL operators.
-  - Registers and modes such as `reg:DI 3`, vector modes, `const_int` and other constants.
-- **GIMPLE dumps** (files like `foo.c.065t.ssa`, `foo.c.093t.optimized`)
-  - Basic block headers like `<bb 3>` and associated metadata.
-  - GIMPLE statements such as `gimple_call`, `gimple_assign`, `gimple_cond`, `gimple_switch`, `gimple_label`.
-  - PHI nodes and SSA names so you can follow dataflow.
-- **`match.pd` pattern files**
-  - `match` / `simplify` rules and helper definitions.
-  - Operator trees (e.g. `plus`, `mult`, `bit_and`, `lshift`, `cond`, `vec_perm`, `fma`, etc.).
-  - Captures like `@x` and `@@y`, plus embedded C/C++ action code.
+### 1. Machine Description Files (`.md`)
+* **Constructs:** `define_insn`, `define_expand`, `define_split`, `define_peephole2`, iterators, attributes, `match_operand`, and RTL patterns.
+* **Embedded Code:** Highlights C/C++ blocks embedded inside MD files.
+* **Operands:** Distinct coloring for registers, modes, and constraints.
 
-Reading all of this as plain, uncolored text is painful. This extension provides TextMate grammars so that VS Code / VSCodium can:
+### 2. RTL Dumps (`.expand`, `.vregs`, etc.)
+* **Records:** `insn`, `jump_insn`, `call_insn`, `note`, `barrier`, `code_label`, `debug_insn`.
+* **Structure:** `set`, `parallel`, `clobber`, `use`, plus arithmetic and logical RTL operators.
+* **Data:** Registers (`reg:DI 3`), vector modes, `const_int`, and other constants.
 
-- Color **MD** constructs (define forms, iterators, predicates, operands, RTL operators, modes, constants).
-- Color **RTL** dumps (instruction kinds, UIDs, registers, modes, constants, and common RTL operators).
-- Color **GIMPLE** dumps (basic blocks, common statement kinds, PHIs, SSA names, constants, and control-flow keywords).
-- Color **`match.pd`** (pattern headers, operators, captures, preprocessor lines, and C/C++ action blocks).
-- Color **6000-builtins file**
+### 3. GIMPLE Dumps (`.ssa`, `.optimized`, etc.)
+* **Control Flow:** Basic block headers (`<bb 3>`) and metadata.
+* **Statements:** `gimple_call`, `gimple_assign`, `gimple_cond`, `gimple_switch`, `gimple_label`.
+* **Dataflow:** PHI nodes and SSA names are highlighted to easily trace data flow.
 
-In short, this repo is useful any time you are:
+### 4. `match.pd` Patterns
+* **Rules:** `match` / `simplify` rules and helper definitions.
+* **Trees:** Operator trees (e.g., `plus`, `mult`, `bit_and`, `lshift`, `cond`, `vec_perm`, `fma`).
+* **Captures:** Highlights captures like `@x` and `@@y`, along with embedded C/C++ action code.
 
-- Developing or debugging GCC itself.
-- Inspecting GIMPLE or RTL dumps produced by GCC.
-- Working on `match.pd` or `.md` files and want them to be readable inside VS Code / VSCodium instead of in a bare terminal.
+### 5. PowerPC/RS6000 Builtins
+* Specific highlighting for `rs6000-builtin.def` files and related 6000-series definitions.
+
+### 6. Option files (.opt)
+
+### 7. DejaGnu expect scripts (.exp)
+
 
 ## Syntax Highlighting Preview
 
-### Match Pattern
-![Match](pictures/Match.png)
+### Match Pattern (`match.pd`)
+![Match Pattern Preview](pictures/Match.png)
 
-### GCC Machine Description
-![GCC Machine Description](pictures/GCC-Machine-Description.png)
-
-## Publisher Trust & Security
-
-This extension is open-source and published by Kishan Parmar.
-
-Source code is publicly available on GitHub and can be audited by anyone.
-
-No telemetry, tracking, or data collection is performed by this extension.
-
+### GCC Machine Description (`.md`)
+![GCC Machine Description Preview](pictures/GCC-Machine-Description.png)
