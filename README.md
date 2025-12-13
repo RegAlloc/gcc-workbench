@@ -1,6 +1,6 @@
 # GCC Syntax Highlighting – GCC internals in color
 
-**Extension version:** 0.1.4
+**Extension version:** 1.0.0
 
 This repository contains a Visual Studio Code / VSCodium extension that adds syntax highlighting for **GCC internals**.
 It is aimed at people working on GCC itself or regularly reading GCC dumps.
@@ -49,6 +49,7 @@ When hacking on GCC, you often need to read and understand complex internal form
 
 ### 7. DejaGnu expect scripts (.exp)
 
+---
 
 ## Syntax Highlighting Preview
 
@@ -57,3 +58,25 @@ When hacking on GCC, you often need to read and understand complex internal form
 
 ### GCC Machine Description (`.md`)
 ![GCC Machine Description Preview](pictures/GCC-Machine-Description.png)
+
+---
+
+### Project Status & Contributing
+
+My foundational work on this extension is complete. The project is now open for the community to utilize, maintain, and evolve.
+
+* **Found a bug?**
+    Please raise an issue on the issue tracker:
+    [https://github.com/RegAlloc/gcc-syntax-highlighting/issues](https://github.com/RegAlloc/gcc-syntax-highlighting/issues)
+
+* **Want to contribute?**
+    Everyone is welcome to continue or expand on this project. Feel free to fork the repository and raise a Pull Request here:
+    [https://github.com/RegAlloc/gcc-syntax-highlighting](https://github.com/RegAlloc/gcc-syntax-highlighting)
+
+### Publisher Trust & Security
+
+This extension is open-source and published by Kishan Parmar.
+
+Source code is publicly available on GitHub and can be audited by anyone.
+
+No telemetry, tracking, or data collection is performed by this extension.

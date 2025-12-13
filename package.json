@@ -2,7 +2,12 @@
   "name": "gcc-syntax-highlighting",
   "displayName": "GCC Syntax Highlighting Toolkit (RTL, GIMPLE & MD)",
   "description": "Syntax highlighting for GCC RTL, Gimple, Match.pd, and Machine Description files",
-  "version": "0.1.4",
+  "version": "1.0.0",
+  "author": {
+    "name": "Kishan Parmar",
+    "email": "kparmar2101@gmail.com",
+    "url": "https://github.com/RegAlloc"
+  },
   "publisher": "RegAlloc",
   "icon": "pictures/gcc.png",
   "repository": {
@@ -206,7 +211,8 @@
       },
       "files.associations": {
         "t-*": "makefile",
-        "config.gcc": "shellscript"
+        "config.in": "cpp",
+        "config.*": "shellscript"
       }
     }
   }
