@@ -59,7 +59,7 @@ class GccMdSymbolProvider {
              * 1. Only matches word as a NAME: (define_... "word" or (define_... word
              * 2. Only matches word as a CONSTANT: (word <value>)
              */
-            const pattern = new RegExp(`\\(define_(attr|predicate|special_predicate|constraint|register_constraint)\\s+"${word}"` +
+            const pattern = new RegExp(`\\(define_(attr|predicate|special_predicate|constraint|register_constraint|memory_constraint|address_constraint)\\s+"${word}"` +
                 `|\\(define_[a-z]+_(iterator|attr)\\s+${word}\\b` +
                 `|\\(\\s*${word}\\s+([0-x0-9a-fA-F-]+)\\s*\\)`, 'm');
             const match = content.match(pattern);

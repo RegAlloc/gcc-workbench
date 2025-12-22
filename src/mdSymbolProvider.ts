@@ -27,7 +27,7 @@ export class GccMdSymbolProvider implements vscode.DefinitionProvider {
              * 2. Only matches word as a CONSTANT: (word <value>)
              */
             const pattern = new RegExp(
-                `\\(define_(attr|predicate|special_predicate|constraint|register_constraint)\\s+"${word}"` +
+                `\\(define_(attr|predicate|special_predicate|constraint|register_constraint|memory_constraint|address_constraint)\\s+"${word}"` +
                 `|\\(define_[a-z]+_(iterator|attr)\\s+${word}\\b` +
                 `|\\(\\s*${word}\\s+([0-x0-9a-fA-F-]+)\\s*\\)`, 
                 'm'
