@@ -264,7 +264,7 @@
             {
               "comment": "define_constraints and define_predicate",
               "name": "keyword.control.define.constraint.gcc-md",
-              "match": "\\b(define_predicate|define_constraint|define_register_constraint)\\b"
+              "match": "\\b(define_predicate|define_constraint|define_register_constraint|define_memory_constraint|define_address_constraint)\\b"
             }
           ]
     },
@@ -311,7 +311,7 @@
                   "comment": "match forms - operand matching",
                   "name": "entity.name.function.match.gcc-md",
                   "match":
-                      "\\b(match_operand|match_scratch|match_dup|match_operator|match_op_dup|match_parallel|match_par_dup)\\b"
+                      "\\b(match_code|match_operand|match_scratch|match_dup|match_operator|match_op_dup|match_parallel|match_par_dup|match_test)\\b"
                 },
                 {
                   "comment": "attribute definitions",
