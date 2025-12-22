@@ -36,48 +36,53 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
-const path = __importStar(require("path")); // Added missing import
+const path = __importStar(require("path"));
 const mdCache_1 = require("./mdCache");
 const mdSymbolProvider_1 = require("./mdSymbolProvider");
 const mdHoverProvider_1 = require("./mdHoverProvider");
 const mdReferenceProvider_1 = require("./mdReferenceProvider");
 const linkProvider_1 = require("./linkProvider");
 const cache = new mdCache_1.GccMdCache();
-let currentBackendDir = undefined;
+// Track initialized directories to avoid re-scanning the same backend twice in one session
+const initializedBackends = new Set();
 async function activate(context) {
     const selector = { scheme: 'file', language: 'gcc-md' };
-    // Function to handle backend switching
-    const updateCacheForActiveEditor = async (editor) => {
-        if (!editor || editor.document.languageId !== 'gcc-md')
+    // 1. Intelligent Initialization
+    const ensureBackendIndexed = async (doc) => {
+        if (doc.languageId !== 'gcc-md')
             return;
-        const newDir = path.dirname(editor.document.uri.fsPath);
-        if (newDir !== currentBackendDir) {
-            currentBackendDir = newDir;
-            // Clear and re-index for the new target (e.g., switching rs6000 -> aarch64)
-            await cache.initialize(editor.document.uri);
+        const dir = path.dirname(doc.uri.fsPath);
+        if (!initializedBackends.has(dir)) {
+            initializedBackends.add(dir);
+            vscode.window.setStatusBarMessage(`Indexing GCC Backend: ${path.basename(dir)}...`, 2000);
+            await cache.forceReindex(doc.uri);
         }
     };
-    // Initialize on start
-    await updateCacheForActiveEditor(vscode.window.activeTextEditor);
-    // Listen for tab switches to change backend context
-    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => updateCacheForActiveEditor(editor)));
-    // Watch for file changes to keep cache fresh
+    // Trigger on load
+    if (vscode.window.activeTextEditor) {
+        await ensureBackendIndexed(vscode.window.activeTextEditor.document);
+    }
+    // Trigger on tab switch (Lazy Loading)
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => {
+        if (editor)
+            ensureBackendIndexed(editor.document);
+    }));
+    // 2. File Watcher with Debounce
     const watcher = vscode.workspace.createFileSystemWatcher('**/*.md');
-    // use onDidChange and onDidCreate (onDidSave doesn't exist)
-    context.subscriptions.push(watcher.onDidChange((uri) => cache.indexFile(uri)));
-    context.subscriptions.push(watcher.onDidCreate((uri) => cache.indexFile(uri)));
     context.subscriptions.push(watcher);
-    // Command for permanent links
+    // Simple index update on change (Fast, single file update)
+    watcher.onDidChange((uri) => cache.indexFile(uri));
+    watcher.onDidCreate((uri) => cache.indexFile(uri));
+    // Note: On delete, we might want to full reindex, but for now ignoring is safer
+    // 3. Command Registration
     context.subscriptions.push(vscode.commands.registerCommand('gcc-md.openFilePermanent', (uri) => {
         vscode.window.showTextDocument(uri, { preview: false });
     }));
-    // Register all providers with the cache
+    // 4. Provider Registration (Pass cache instance)
     context.subscriptions.push(vscode.languages.registerDefinitionProvider(selector, new mdSymbolProvider_1.GccMdSymbolProvider(cache)));
     context.subscriptions.push(vscode.languages.registerHoverProvider(selector, new mdHoverProvider_1.GccMdHoverProvider(cache)));
     context.subscriptions.push(vscode.languages.registerReferenceProvider(selector, new mdReferenceProvider_1.GccMdReferenceProvider(cache)));
     context.subscriptions.push(vscode.languages.registerDocumentLinkProvider(selector, new linkProvider_1.GCCMdLinkProvider()));
 }
-function deactivate() {
-    cache.clear();
-}
+function deactivate() { }
 //# sourceMappingURL=extension.js.map

@@ -37,90 +37,180 @@ exports.GccMdCache = void 0;
 const vscode = __importStar(require("vscode"));
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
-class GccMdCache {
+class BackendContext {
     symbols = new Map();
     wordFilesMap = new Map();
+    processingFiles = new Set();
     clear() {
         this.symbols.clear();
         this.wordFilesMap.clear();
+        this.processingFiles.clear();
     }
-    async initialize(rootUri) {
-        this.clear(); // Wipe the cache when switching backends
-        const currentDir = path.dirname(rootUri.fsPath);
-        // Index local files
-        await this.indexDirectory(currentDir);
-        // Index common.md relative to the current file
-        const commonMd = path.resolve(currentDir, '../../common.md');
-        if (fs.existsSync(commonMd))
-            await this.indexFile(vscode.Uri.file(commonMd));
+}
+class GccMdCache {
+    contexts = new Map();
+    ignoredKeywords = new Set([
+        'match_operand', 'match_scratch', 'match_dup', 'match_operator',
+        'match_parallel', 'clobber', 'use', 'set', 'const_int', 'const_string'
+    ]);
+    getContext(uri) {
+        const dir = path.dirname(uri.fsPath);
+        if (!this.contexts.has(dir))
+            this.contexts.set(dir, new BackendContext());
+        return this.contexts.get(dir);
     }
-    async indexDirectory(dirPath) {
-        const files = await fs.promises.readdir(dirPath);
-        const mdFiles = files.filter(f => f.endsWith('.md')).map(f => path.join(dirPath, f));
-        await Promise.all(mdFiles.map(f => this.indexFile(vscode.Uri.file(f))));
+    findCommonMdPath(startDir) {
+        let current = startDir;
+        for (let i = 0; i < 5; i++) {
+            const candidate = path.join(current, 'common.md');
+            if (fs.existsSync(candidate))
+                return candidate;
+            const parent = path.dirname(current);
+            if (parent === current)
+                break;
+            current = parent;
+        }
+        return null;
     }
-    async indexFile(uri) {
+    async indexFile(uri, parentCtx) {
+        const ctx = parentCtx || this.getContext(uri);
+        const filePath = uri.fsPath;
+        if (ctx.processingFiles.has(filePath))
+            return;
+        ctx.processingFiles.add(filePath);
         try {
-            const content = await fs.promises.readFile(uri.fsPath, 'utf8');
-            const filePath = uri.fsPath;
-            // Remove previous symbols for this specific file
-            for (const [name, sym] of this.symbols.entries()) {
-                if (sym.uri.fsPath === filePath)
-                    this.symbols.delete(name);
+            const content = await fs.promises.readFile(filePath, 'utf8');
+            // 1. Clean old symbols for this file
+            for (const [key, syms] of ctx.symbols.entries()) {
+                const filtered = syms.filter(s => s.uri.fsPath !== filePath);
+                if (filtered.length > 0)
+                    ctx.symbols.set(key, filtered);
+                else
+                    ctx.symbols.delete(key);
             }
-            // Regex for all MD definitions
-            const defRegex = /\(define_(attr|predicate|special_predicate|constraint|register_constraint)\s+"([^"]+)"|\(define_[a-z]+_(iterator|attr)\s+([a-zA-Z0-9_]+)\b|\(\s*([a-zA-Z0-9_]+)\s+([0-x0-9a-fA-F-]+)\s*\)/g;
+            // 2. Index content
+            const defRegex = /\(define_(attr|predicate|special_predicate|constraint|register_constraint|memory_constraint|address_constraint|c_enum)\s+"([^"]+)"|\(define_([a-z]+)_(iterator|attr)\s+([a-zA-Z0-9_]+)\b|\(\s*([a-zA-Z0-9_]+)\s+([0-x0-9a-fA-F-]+)\s*\)/g;
             let match;
             while ((match = defRegex.exec(content)) !== null) {
-                const name = match[2] || match[4] || match[5];
-                if (!name || name === 'const_int' || name === 'set' || name === 'unspec')
+                // --- CRITICAL FIX: IGNORE COMMENTS ---
+                // We check the text from the start of the line up to the match.
+                // If it contains a semicolon, this definition is commented out.
+                const textBeforeMatch = content.substring(0, match.index);
+                const lastNewLine = textBeforeMatch.lastIndexOf('\n');
+                const lineStart = lastNewLine === -1 ? 0 : lastNewLine + 1;
+                const linePrefix = content.substring(lineStart, match.index).trim();
+                if (linePrefix.startsWith(';') || linePrefix.includes(';')) {
+                    continue; // Skip: It's inside a comment
+                }
+                // -------------------------------------
+                let name = '';
+                let type = 'attribute';
+                if (match[2]) { // Quoted
+                    name = match[2];
+                    const t = match[1];
+                    if (t.includes('constraint'))
+                        type = 'constraint';
+                    else if (t.includes('predicate'))
+                        type = 'predicate';
+                    else if (t === 'attr')
+                        type = 'attribute';
+                    else if (t === 'c_enum')
+                        type = 'unspec';
+                }
+                else if (match[5]) { // Bracketed
+                    name = match[5];
+                    const kind = match[4];
+                    type = kind === 'iterator' ? 'iterator' : 'attribute';
+                }
+                else if (match[6]) { // Constant
+                    name = match[6];
+                    type = 'constant';
+                }
+                if (!name || this.ignoredKeywords.has(name))
                     continue;
-                const linesBefore = content.substring(0, match.index).split('\n');
-                const lineNum = linesBefore.length - 1;
-                this.symbols.set(name, {
-                    definition: this.extractBalancedBlock(content.substring(match.index)),
-                    comments: this.getComments(linesBefore),
+                // Extract Comments (Backward scan)
+                const lines = textBeforeMatch.split('\n');
+                const lineNum = lines.length - 1;
+                let comments = [];
+                for (let i = lineNum - 1; i >= 0; i--) {
+                    const l = lines[i].trim();
+                    if (l.startsWith(';'))
+                        comments.unshift(l.replace(/^;+\s*/, ''));
+                    else if (l !== '')
+                        break;
+                }
+                const newSymbol = {
+                    definition: content.substring(match.index).split(')')[0] + ')',
+                    comments: comments.join('\n'),
                     uri: uri,
                     line: lineNum,
-                    character: linesBefore[lineNum].length
-                });
+                    character: lines[lineNum].length,
+                    type: type
+                };
+                if (!ctx.symbols.has(name))
+                    ctx.symbols.set(name, []);
+                ctx.symbols.get(name).push(newSymbol);
+                // 3. Handle Includes
+                if (match[0].includes('include')) {
+                    const incMatch = /\(include\s+"([^"]+)"\)/.exec(match[0]);
+                    if (incMatch) {
+                        const incPath = path.resolve(path.dirname(filePath), incMatch[1]);
+                        if (fs.existsSync(incPath)) {
+                            await this.indexFile(vscode.Uri.file(incPath), ctx);
+                        }
+                    }
+                }
             }
-            // Update Reference Map
+            // 4. Update Reverse Index
             const words = new Set(content.split(/[^a-zA-Z0-9_]+/));
             words.forEach(word => {
-                if (!this.wordFilesMap.has(word))
-                    this.wordFilesMap.set(word, new Set());
-                this.wordFilesMap.get(word).add(filePath);
+                if (!ctx.wordFilesMap.has(word))
+                    ctx.wordFilesMap.set(word, new Set());
+                ctx.wordFilesMap.get(word).add(filePath);
             });
         }
-        catch (e) { }
-    }
-    getSymbol(name) { return this.symbols.get(name); }
-    getFilesWithWord(word) { return Array.from(this.wordFilesMap.get(word) || []); }
-    getComments(lines) {
-        let comments = [];
-        for (let i = lines.length - 1; i >= 0; i--) {
-            const l = lines[i].trim();
-            if (l.startsWith(';'))
-                comments.unshift(l.replace(/^;+\s*/, ''));
-            else if (l !== '')
-                break;
+        catch (e) {
+            console.error(`Index Error: ${filePath}`, e);
         }
-        return comments.join('  \n');
+        finally {
+            ctx.processingFiles.delete(filePath);
+        }
     }
-    extractBalancedBlock(text) {
-        let depth = 0, endIdx = 0;
-        for (let i = 0; i < text.length; i++) {
-            if (text[i] === '(')
-                depth++;
-            else if (text[i] === ')')
-                depth--;
-            if (depth === 0 && i > 0) {
-                endIdx = i + 1;
-                break;
+    getAllSymbols(uri, name) {
+        const results = [];
+        const startDir = path.dirname(uri.fsPath);
+        const localCtx = this.contexts.get(startDir);
+        if (localCtx) {
+            const s = localCtx.symbols.get(name);
+            if (s)
+                results.push(...s);
+        }
+        const commonPath = this.findCommonMdPath(startDir);
+        if (commonPath) {
+            const commonDir = path.dirname(commonPath);
+            const commonCtx = this.contexts.get(commonDir);
+            if (commonCtx) {
+                const s = commonCtx.symbols.get(name);
+                if (s)
+                    results.push(...s);
             }
         }
-        return text.substring(0, endIdx || text.indexOf(')'));
+        return results;
+    }
+    getFilesWithWord(uri, word) {
+        const ctx = this.getContext(uri);
+        return Array.from(ctx.wordFilesMap.get(word) || []);
+    }
+    async forceReindex(uri) {
+        const dir = path.dirname(uri.fsPath);
+        const ctx = this.getContext(uri);
+        ctx.clear();
+        const files = await fs.promises.readdir(dir);
+        await Promise.all(files.filter(f => f.endsWith('.md'))
+            .map(f => this.indexFile(vscode.Uri.file(path.join(dir, f)))));
+        const commonPath = this.findCommonMdPath(dir);
+        if (commonPath)
+            await this.indexFile(vscode.Uri.file(commonPath));
     }
 }
 exports.GccMdCache = GccMdCache;
