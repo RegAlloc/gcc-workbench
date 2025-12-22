@@ -72,49 +72,59 @@ export class GccMdCache {
             
             let match;
             while ((match = defRegex.exec(content)) !== null) {
-                // --- CRITICAL FIX: IGNORE COMMENTS ---
-                // We check the text from the start of the line up to the match.
-                // If it contains a semicolon, this definition is commented out.
+                // Check for commented-out definitions
                 const textBeforeMatch = content.substring(0, match.index);
                 const lastNewLine = textBeforeMatch.lastIndexOf('\n');
                 const lineStart = lastNewLine === -1 ? 0 : lastNewLine + 1;
                 const linePrefix = content.substring(lineStart, match.index).trim();
                 
-                if (linePrefix.startsWith(';') || linePrefix.includes(';')) {
-                    continue; // Skip: It's inside a comment
-                }
-                // -------------------------------------
+                if (linePrefix.startsWith(';') || linePrefix.includes(';')) continue;
 
                 let name = '';
                 let type: SymbolType = 'attribute';
 
-                if (match[2]) { // Quoted
+                if (match[2]) {
                     name = match[2];
                     const t = match[1];
                     if (t.includes('constraint')) type = 'constraint';
                     else if (t.includes('predicate')) type = 'predicate';
                     else if (t === 'attr') type = 'attribute';
                     else if (t === 'c_enum') type = 'unspec';
-                } else if (match[5]) { // Bracketed
+                } else if (match[5]) {
                     name = match[5];
                     const kind = match[4];
                     type = kind === 'iterator' ? 'iterator' : 'attribute';
-                } else if (match[6]) { // Constant
+                } else if (match[6]) {
                     name = match[6];
                     type = 'constant';
                 }
 
                 if (!name || this.ignoredKeywords.has(name)) continue;
 
-                // Extract Comments (Backward scan)
+                // --- IMPROVED COMMENT EXTRACTION ---
                 const lines = textBeforeMatch.split('\n');
                 const lineNum = lines.length - 1;
                 let comments: string[] = [];
+                
+                // Walk backwards from the definition line
                 for (let i = lineNum - 1; i >= 0; i--) {
                     const l = lines[i].trim();
-                    if (l.startsWith(';')) comments.unshift(l.replace(/^;+\s*/, ''));
-                    else if (l !== '') break;
+                    
+                    if (l === '') {
+                        // CRITICAL FIX: Stop immediately on a blank line.
+                        // This prevents merging the definition docs with the File Header/License.
+                        break;
+                    }
+
+                    if (l.startsWith(';')) {
+                        // Clean the comment marker but keep the text
+                        comments.unshift(l.replace(/^;+\s*/, ''));
+                    } else {
+                        // Stop if we hit other code
+                        break;
+                    }
                 }
+                // -----------------------------------
 
                 const newSymbol: GccSymbol = {
                     definition: content.substring(match.index).split(')')[0] + ')',
@@ -128,7 +138,7 @@ export class GccMdCache {
                 if (!ctx.symbols.has(name)) ctx.symbols.set(name, []);
                 ctx.symbols.get(name)!.push(newSymbol);
 
-                // 3. Handle Includes
+                // Handle Includes
                 if (match[0].includes('include')) {
                     const incMatch = /\(include\s+"([^"]+)"\)/.exec(match[0]);
                     if (incMatch) {
@@ -140,7 +150,7 @@ export class GccMdCache {
                 }
             }
 
-            // 4. Update Reverse Index
+            // Reverse Index
             const words = new Set(content.split(/[^a-zA-Z0-9_]+/));
             words.forEach(word => {
                 if (!ctx.wordFilesMap.has(word)) ctx.wordFilesMap.set(word, new Set());
