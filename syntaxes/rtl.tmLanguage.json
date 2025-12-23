@@ -72,10 +72,6 @@
             {
               "match": ";;.*$",
               "name": "comment.line.double-semicolon.gcc.rtl"
-            },
-            {
-              "match": ";.*$",
-              "name": "comment.line.semicolon.gcc.rtl"
             }
           ]
     },

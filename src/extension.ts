@@ -1,62 +1,69 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { GccMdCache } from './mdCache';
+import { RtlDefCache } from './rtlCache'; // Import
 import { GccMdSymbolProvider } from './mdSymbolProvider';
 import { GccMdHoverProvider } from './mdHoverProvider';
 import { GccMdReferenceProvider } from './mdReferenceProvider';
 import { GCCMdLinkProvider } from './linkProvider';
 
-const cache = new GccMdCache();
+const mdCache = new GccMdCache();
+const rtlCache = new RtlDefCache(); // Instantiate
 
-// Track initialized directories to avoid re-scanning the same backend twice in one session
 const initializedBackends = new Set<string>();
 
 export async function activate(context: vscode.ExtensionContext) {
-    const selector: vscode.DocumentSelector = { scheme: 'file', language: 'gcc-md' };
+    // 1. Initialize RTL Definitions (Once)
+    await rtlCache.initialize(context);
 
-    // 1. Intelligent Initialization
+    // 2. Selectors for MD and Dump files
+    // Assuming dump files might be .rtl, .expand, .vregs, etc. or just plain text
+    const mdSelector: vscode.DocumentSelector = { scheme: 'file', language: 'gcc-md' };
+    
+    // We register the SAME hover provider for any file that looks like a dump
+    const dumpSelector: vscode.DocumentSelector = [
+        { scheme: 'file', language: 'gcc-rtl' },
+        { scheme: 'file', language: 'gcc-md' } // Also cover MD files
+    ];
+
+    // ... (Keep existing MD Cache initialization logic) ...
     const ensureBackendIndexed = async (doc: vscode.TextDocument) => {
         if (doc.languageId !== 'gcc-md') return;
         const dir = path.dirname(doc.uri.fsPath);
-
         if (!initializedBackends.has(dir)) {
             initializedBackends.add(dir);
             vscode.window.setStatusBarMessage(`Indexing GCC Backend: ${path.basename(dir)}...`, 2000);
-            await cache.forceReindex(doc.uri);
+            await mdCache.forceReindex(doc.uri);
         }
     };
 
-    // Trigger on load
     if (vscode.window.activeTextEditor) {
         await ensureBackendIndexed(vscode.window.activeTextEditor.document);
     }
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => {
+        if (editor) ensureBackendIndexed(editor.document);
+    }));
 
-    // Trigger on tab switch (Lazy Loading)
-    context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(editor => {
-            if (editor) ensureBackendIndexed(editor.document);
-        })
-    );
-
-    // 2. File Watcher with Debounce
+    // Watchers
     const watcher = vscode.workspace.createFileSystemWatcher('**/*.md');
+    context.subscriptions.push(watcher.onDidChange((uri) => mdCache.indexFile(uri)));
+    context.subscriptions.push(watcher.onDidCreate((uri) => mdCache.indexFile(uri)));
     context.subscriptions.push(watcher);
-    
-    // Simple index update on change (Fast, single file update)
-    watcher.onDidChange((uri) => cache.indexFile(uri));
-    watcher.onDidCreate((uri) => cache.indexFile(uri));
-    // Note: On delete, we might want to full reindex, but for now ignoring is safer
 
-    // 3. Command Registration
+    // Commands
     context.subscriptions.push(vscode.commands.registerCommand('gcc-md.openFilePermanent', (uri: vscode.Uri) => {
         vscode.window.showTextDocument(uri, { preview: false });
     }));
 
-    // 4. Provider Registration (Pass cache instance)
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(selector, new GccMdSymbolProvider(cache)));
-    context.subscriptions.push(vscode.languages.registerHoverProvider(selector, new GccMdHoverProvider(cache)));
-    context.subscriptions.push(vscode.languages.registerReferenceProvider(selector, new GccMdReferenceProvider(cache)));
-    context.subscriptions.push(vscode.languages.registerDocumentLinkProvider(selector, new GCCMdLinkProvider()));
+    // Providers
+    // NOTE: Symbol and Reference providers only make sense for MD files usually
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(mdSelector, new GccMdSymbolProvider(mdCache)));
+    context.subscriptions.push(vscode.languages.registerReferenceProvider(mdSelector, new GccMdReferenceProvider(mdCache)));
+    context.subscriptions.push(vscode.languages.registerDocumentLinkProvider(mdSelector, new GCCMdLinkProvider()));
+
+    // NOTE: Hover Provider is registered for BOTH MD and Dumps
+    // We pass both caches to it
+    context.subscriptions.push(vscode.languages.registerHoverProvider(dumpSelector, new GccMdHoverProvider(mdCache, rtlCache)));
 }
 
 export function deactivate() {}

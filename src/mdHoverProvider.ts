@@ -1,44 +1,40 @@
 import * as vscode from 'vscode';
 import { GccMdCache, GccSymbol } from './mdCache';
+import { RtlDefCache } from './rtlCache';
 
 export class GccMdHoverProvider implements vscode.HoverProvider {
-    constructor(private cache: GccMdCache) {}
+    constructor(private mdCache: GccMdCache, private rtlCache: RtlDefCache) {}
 
-    private readonly forbiddenWords = new Set(['match_dup', 'match_operand', 'match_scratch', 'set', 'const_int', 'clobber']);
+    // No forbidden words. No static dictionaries. 
+    // We trust the caches to contain the truth.
     private readonly constraintModifiers = /^[\=\+\&\%\?\!\*\#\^]+/;
 
     public provideHover(document: vscode.TextDocument, position: vscode.Position): vscode.Hover | null {
         const lineText = document.lineAt(position.line).text;
-        
-        // Use the same robust parser
         const wordInfo = this.getWordUnderCursor(lineText, position.character);
         if (!wordInfo) return null;
 
         const { word, isQuoted, isBracketed } = wordInfo;
         const cleanWord = word.replace(this.constraintModifiers, '');
 
-        if (this.forbiddenWords.has(cleanWord)) return null;
-
-        // Get Candidates
-        const candidates = this.cache.getAllSymbols(document.uri, cleanWord);
-        if (candidates.length === 0) return null;
-
+        // --- LAYER 1: MD CACHE (Iterators, Attributes, Constraints) ---
+        const candidates = this.mdCache.getAllSymbols(document.uri, cleanWord);
         let bestMatch: GccSymbol | undefined;
 
-        if (isQuoted) {
-            // Priority: Constraint > Predicate > Attribute
-            bestMatch = candidates.find(s => s.type === 'constraint');
-            if (!bestMatch) bestMatch = candidates.find(s => s.type === 'predicate');
-            if (!bestMatch) bestMatch = candidates.find(s => s.type === 'attribute');
-        } 
-        else {
-            if (isBracketed) {
-                bestMatch = candidates.find(s => s.type === 'iterator');
+        if (candidates.length > 0) {
+            if (isQuoted) {
+                bestMatch = candidates.find(s => s.type === 'constraint');
+                if (!bestMatch) bestMatch = candidates.find(s => s.type === 'predicate');
                 if (!bestMatch) bestMatch = candidates.find(s => s.type === 'attribute');
             } else {
-                bestMatch = candidates.find(s => s.type === 'iterator');
-                if (!bestMatch) bestMatch = candidates.find(s => s.type === 'constant');
-                if (!bestMatch) bestMatch = candidates.find(s => s.type === 'unspec');
+                if (isBracketed) {
+                    bestMatch = candidates.find(s => s.type === 'iterator');
+                    if (!bestMatch) bestMatch = candidates.find(s => s.type === 'attribute');
+                } else {
+                    bestMatch = candidates.find(s => s.type === 'iterator');
+                    if (!bestMatch) bestMatch = candidates.find(s => s.type === 'constant');
+                    if (!bestMatch) bestMatch = candidates.find(s => s.type === 'unspec');
+                }
             }
         }
 
@@ -49,11 +45,23 @@ export class GccMdHoverProvider implements vscode.HoverProvider {
             markdown.appendCodeblock(bestMatch.definition, 'gcc-md');
             return new vscode.Hover(markdown);
         }
+
+        // --- LAYER 2: RTL CACHE (Source of Truth) ---
+        // Now handles 'match_operand', 'set', 'clobber', etc. dynamically
+        if (!isQuoted) {
+            const rtlExplanation = this.rtlCache.getExplanation(cleanWord);
+            if (rtlExplanation) {
+                const markdown = new vscode.MarkdownString();
+                markdown.appendMarkdown(`### 📘 RTL Operation: **${cleanWord}**\n`);
+                markdown.appendMarkdown(`${rtlExplanation}`);
+                return new vscode.Hover(markdown);
+            }
+        }
+
         return null;
     }
 
-    // --- COPY OF THE ROBUST PARSER ---
-    // (Ideally, move this to a shared 'utils.ts' file to avoid code duplication)
+    // (Robust Parser - Same as before)
     private getWordUnderCursor(line: string, charIndex: number): { word: string, isQuoted: boolean, isBracketed: boolean } | null {
         let inString = false;
         let startQuote = -1;
