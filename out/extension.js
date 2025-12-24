@@ -43,9 +43,11 @@ const mdSymbolProvider_1 = require("./mdSymbolProvider");
 const mdHoverProvider_1 = require("./mdHoverProvider");
 const mdReferenceProvider_1 = require("./mdReferenceProvider");
 const linkProvider_1 = require("./linkProvider");
+const passDiffProvider_1 = require("./passDiffProvider");
 const mdCache = new mdCache_1.GccMdCache();
 const rtlCache = new rtlCache_1.RtlDefCache(); // Instantiate
 const initializedBackends = new Set();
+const diffProvider = new passDiffProvider_1.GccPassDiffProvider();
 async function activate(context) {
     // 1. Initialize RTL Definitions (Once)
     await rtlCache.initialize(context);
@@ -92,6 +94,16 @@ async function activate(context) {
     // NOTE: Hover Provider is registered for BOTH MD and Dumps
     // We pass both caches to it
     context.subscriptions.push(vscode.languages.registerHoverProvider(dumpSelector, new mdHoverProvider_1.GccMdHoverProvider(mdCache, rtlCache)));
+    // REGISTER THE TIME TRAVEL COMMAND
+    context.subscriptions.push(vscode.commands.registerCommand('gcc-md.comparePreviousPass', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            await diffProvider.compareWithPrevious(editor.document.uri);
+        }
+        else {
+            vscode.window.showErrorMessage("Open a GCC dump file first.");
+        }
+    }));
 }
 function deactivate() { }
 //# sourceMappingURL=extension.js.map

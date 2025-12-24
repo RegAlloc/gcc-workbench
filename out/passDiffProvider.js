@@ -1,0 +1,113 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GccPassDiffProvider = void 0;
+const vscode = __importStar(require("vscode"));
+const path = __importStar(require("path"));
+const fs = __importStar(require("fs"));
+class GccPassDiffProvider {
+    async compareWithPrevious(currentUri) {
+        const dir = path.dirname(currentUri.fsPath);
+        const currentFilename = path.basename(currentUri.fsPath);
+        // 1. Parse the current file: test.c.286r.combine
+        // Regex: (base).(number)(type).(passname)
+        // We match strictly 3 digits as per your spec, but allow flexible base names.
+        const fileRegex = /^(.+)\.(\d{3})([tr])\.(.+)$/;
+        const match = fileRegex.exec(currentFilename);
+        if (!match) {
+            vscode.window.showErrorMessage(`Current file does not look like a GCC dump (Format: name.123r.pass).`);
+            return;
+        }
+        const [_, baseName, numStr, type, passName] = match;
+        const currentNum = parseInt(numStr, 10);
+        // 2. Scan directory for siblings
+        const files = await fs.promises.readdir(dir);
+        const siblings = [];
+        for (const f of files) {
+            // Must start with the same base name (e.g. test.c)
+            if (!f.startsWith(baseName + '.'))
+                continue;
+            const m = fileRegex.exec(f);
+            if (m) {
+                siblings.push({
+                    uri: vscode.Uri.file(path.join(dir, f)),
+                    filename: f,
+                    number: parseInt(m[2], 10),
+                    type: m[3],
+                    name: m[4]
+                });
+            }
+        }
+        // 3. Sort by Pass Number
+        // Gimple (t) passes come before RTL (r) generally, but the numbers usually handle this.
+        siblings.sort((a, b) => a.number - b.number);
+        // 4. Find the "Previous" Set
+        // We look for the distinct number immediately preceding the current one.
+        // We do not compare siblings with the SAME number (e.g. 280r.cse2 vs 280r.fwprop1)
+        // because their order is ambiguous without parsing internal GCC logs.
+        const validPrevious = siblings.filter(s => s.number < currentNum);
+        if (validPrevious.length === 0) {
+            vscode.window.showInformationMessage(`No previous pass found before ${currentFilename}.`);
+            return;
+        }
+        // Get the highest number from the list (closest to current)
+        const prevNum = validPrevious[validPrevious.length - 1].number;
+        // Collect all files sharing that previous number
+        const candidates = validPrevious.filter(s => s.number === prevNum);
+        // 5. Execute Diff
+        if (candidates.length === 1) {
+            // Perfect case: Only one file exists for the previous pass
+            this.openDiff(candidates[0].uri, currentUri, candidates[0].filename, currentFilename);
+        }
+        else {
+            // Ambiguous case: Multiple files have the same previous ID (e.g. 279r.cprop3 and 279r.cse1)
+            // Ask the user which one they want to compare against.
+            const selected = await vscode.window.showQuickPick(candidates.map(c => ({
+                label: c.filename,
+                description: `Pass ${c.number}`,
+                uri: c.uri
+            })), { placeHolder: `Select which pass ${prevNum} file to compare against:` });
+            if (selected) {
+                this.openDiff(selected.uri, currentUri, selected.label, currentFilename);
+            }
+        }
+    }
+    openDiff(left, right, leftName, rightName) {
+        const title = `${leftName} ↔ ${rightName}`;
+        vscode.commands.executeCommand('vscode.diff', left, right, title);
+    }
+}
+exports.GccPassDiffProvider = GccPassDiffProvider;
+//# sourceMappingURL=passDiffProvider.js.map

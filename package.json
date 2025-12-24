@@ -54,8 +54,22 @@
         {
             "command": "gcc-md.openFilePermanent",
             "title": "Open MD Include"
+        },
+        {
+        "command": "gcc-md.comparePreviousPass",
+        "title": "Compare with Previous Pass",
+        "icon": "$(history)" 
         }
     ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "gcc-md.comparePreviousPass",
+          "when": "resourceFilename =~ /\\.[0-9]{3}[tr]\\./",
+          "group": "navigation"
+        }
+      ] 
+    },
     "languages": [
       {
         "id": "rs6000-builtins",
