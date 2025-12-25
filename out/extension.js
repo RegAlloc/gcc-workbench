@@ -38,48 +38,32 @@ exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
 const path = __importStar(require("path"));
 const mdCache_1 = require("./mdCache");
-const rtlCache_1 = require("./rtlCache"); // Import
+const rtlCache_1 = require("./rtlCache");
 const mdSymbolProvider_1 = require("./mdSymbolProvider");
 const mdHoverProvider_1 = require("./mdHoverProvider");
 const mdReferenceProvider_1 = require("./mdReferenceProvider");
 const linkProvider_1 = require("./linkProvider");
 const passDiffProvider_1 = require("./passDiffProvider");
 const passTreeProvider_1 = require("./passTreeProvider");
-const focusProvider_1 = require("./focusProvider"); // <--- 1. IMPORT THIS
-const graphProvider_1 = require("./graphProvider"); // <--- Import
+const focusProvider_1 = require("./focusProvider");
+const graphProvider_1 = require("./graphProvider");
 const passSurferProvider_1 = require("./passSurferProvider");
 const mdCache = new mdCache_1.GccMdCache();
-const rtlCache = new rtlCache_1.RtlDefCache(); // Instantiate
-const initializedBackends = new Set();
+const rtlCache = new rtlCache_1.RtlDefCache();
 const diffProvider = new passDiffProvider_1.GccPassDiffProvider();
+const focusProvider = new focusProvider_1.GccFocusProvider();
+const graphProvider = new graphProvider_1.GccGraphProvider();
+const surferProvider = new passSurferProvider_1.GccPassSurferProvider();
+const initializedBackends = new Set();
 async function activate(context) {
-    // 1. Initialize RTL Definitions (Once)
-    await rtlCache.initialize(context);
-    // 2. Selectors for MD and Dump files
-    // Assuming dump files might be .rtl, .expand, .vregs, etc. or just plain text
-    const mdSelector = { scheme: 'file', language: 'gcc-md' };
-    // We register the SAME hover provider for any file that looks like a dump
-    const dumpSelector = [
-        { scheme: 'file', language: 'gcc-rtl' },
-        { scheme: 'file', language: 'gcc-md' } // Also cover MD files
-    ];
-    // ... (Keep existing MD Cache initialization logic) ...
-    const ensureBackendIndexed = async (doc) => {
-        if (doc.languageId !== 'gcc-md')
-            return;
-        const dir = path.dirname(doc.uri.fsPath);
-        if (!initializedBackends.has(dir)) {
-            initializedBackends.add(dir);
-            vscode.window.setStatusBarMessage(`Indexing GCC Backend: ${path.basename(dir)}...`, 2000);
-            await mdCache.forceReindex(doc.uri);
-        }
-    };
+    // 1. Helper: Auto-detect GCC Dump Language
+    // Checks for .t (GIMPLE), .r (RTL), .i (IPA)
     const ensureDumpLanguage = async (doc) => {
         if (doc.uri.scheme !== 'file')
             return;
         const fileName = path.basename(doc.uri.fsPath);
-        // Matches: name.123t.pass (Detects 't', 'r', or 'i')
-        const dumpRegex = /^(.+)\.(\d{3})([tri])\.([^.]+)$/;
+        // Robust Regex: Matches 1 or more digits (\d+)
+        const dumpRegex = /^(.+)\.(\d+)([tri])\.([^.]+)$/;
         const match = dumpRegex.exec(fileName);
         if (!match)
             return;
@@ -93,80 +77,67 @@ async function activate(context) {
             await vscode.languages.setTextDocumentLanguage(doc, targetLanguage);
         }
     };
-    const treeProvider = new passTreeProvider_1.GccPassTreeProvider();
-    vscode.window.registerTreeDataProvider('gcc-dump-explorer', treeProvider);
-    const graphProvider = new graphProvider_1.GccGraphProvider();
-    context.subscriptions.push(vscode.commands.registerCommand('gcc-md.openDotFile', () => {
-        const editor = vscode.window.activeTextEditor;
-        if (editor)
-            graphProvider.openDotFile(editor);
-    }));
+    // 2. Initialize Caches
+    await rtlCache.initialize(context);
+    // 3. Selectors
+    // CRITICAL FIX: Added 'gcc-gimple' so hover/links work in tree dumps too
+    const mdSelector = { scheme: 'file', language: 'gcc-md' };
+    const dumpSelector = [
+        { scheme: 'file', language: 'gcc-rtl' },
+        { scheme: 'file', language: 'gcc-md' }
+    ];
+    // 4. Document Watchers (Language Detection)
     if (vscode.window.activeTextEditor) {
-        await ensureBackendIndexed(vscode.window.activeTextEditor.document);
+        await ensureDumpLanguage(vscode.window.activeTextEditor.document);
+        focusProvider.restoreState(vscode.window.activeTextEditor);
     }
-    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => {
-        if (editor)
-            ensureBackendIndexed(editor.document);
-    }));
-    const surferProvider = new passSurferProvider_1.GccPassSurferProvider();
-    // Watchers
-    const watcher = vscode.workspace.createFileSystemWatcher('**/*.md');
-    context.subscriptions.push(watcher.onDidChange((uri) => mdCache.indexFile(uri)));
-    context.subscriptions.push(watcher.onDidCreate((uri) => mdCache.indexFile(uri)));
-    context.subscriptions.push(watcher);
-    const focusProvider = new focusProvider_1.GccFocusProvider();
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(async (editor) => {
         if (editor) {
-            await ensureBackendIndexed(editor.document);
             await ensureDumpLanguage(editor.document);
-            // CRITICAL: Restore decorations AND update the button icon state
+            // Lazy Indexing for MD files
+            if (editor.document.languageId === 'gcc-md') {
+                const dir = path.dirname(editor.document.uri.fsPath);
+                if (!initializedBackends.has(dir)) {
+                    initializedBackends.add(dir);
+                    vscode.window.setStatusBarMessage(`Indexing GCC Backend: ${path.basename(dir)}...`, 2000);
+                    mdCache.forceReindex(editor.document.uri);
+                }
+            }
+            // Restore Focus Mode UI State
             focusProvider.restoreState(editor);
         }
         else {
-            // If no editor is active, disable the button state
             vscode.commands.executeCommand('setContext', 'gcc-md.focusModeActive', false);
         }
     }));
+    // 5. Providers & Commands
+    const treeProvider = new passTreeProvider_1.GccPassTreeProvider();
+    vscode.window.registerTreeDataProvider('gcc-dump-explorer', treeProvider);
+    // MD Specific
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider(mdSelector, new mdSymbolProvider_1.GccMdSymbolProvider(mdCache)));
+    context.subscriptions.push(vscode.languages.registerReferenceProvider(mdSelector, new mdReferenceProvider_1.GccMdReferenceProvider(mdCache)));
+    context.subscriptions.push(vscode.languages.registerDocumentLinkProvider(mdSelector, new linkProvider_1.GCCMdLinkProvider()));
+    // Generic (RTL + GIMPLE + MD)
+    context.subscriptions.push(vscode.languages.registerHoverProvider(dumpSelector, new mdHoverProvider_1.GccMdHoverProvider(mdCache, rtlCache)));
     // Commands
     context.subscriptions.push(vscode.commands.registerCommand('gcc-md.openFilePermanent', (uri) => {
         vscode.window.showTextDocument(uri, { preview: false });
     }));
-    // Providers
-    // NOTE: Symbol and Reference providers only make sense for MD files usually
-    context.subscriptions.push(vscode.languages.registerDefinitionProvider(mdSelector, new mdSymbolProvider_1.GccMdSymbolProvider(mdCache)));
-    context.subscriptions.push(vscode.languages.registerReferenceProvider(mdSelector, new mdReferenceProvider_1.GccMdReferenceProvider(mdCache)));
-    context.subscriptions.push(vscode.languages.registerDocumentLinkProvider(mdSelector, new linkProvider_1.GCCMdLinkProvider()));
-    // NOTE: Hover Provider is registered for BOTH MD and Dumps
-    // We pass both caches to it
-    context.subscriptions.push(vscode.languages.registerHoverProvider(dumpSelector, new mdHoverProvider_1.GccMdHoverProvider(mdCache, rtlCache)));
     context.subscriptions.push(vscode.commands.registerCommand('gcc-md.refreshPasses', () => treeProvider.refresh()));
     context.subscriptions.push(vscode.commands.registerCommand('gcc-md.filterPasses', () => treeProvider.promptFilter()));
-    // REGISTER THE TIME TRAVEL COMMAND
-    context.subscriptions.push(vscode.commands.registerCommand('gcc-md.comparePreviousPass', async () => {
-        const editor = vscode.window.activeTextEditor;
-        if (editor) {
-            await diffProvider.compareWithPrevious(editor.document.uri);
-        }
-        else {
-            vscode.window.showErrorMessage("Open a GCC dump file first.");
-        }
-    }));
-    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => {
-        if (editor) {
-            focusProvider.restoreState(editor);
-        }
-    }));
+    // Focus Mode
     context.subscriptions.push(vscode.commands.registerCommand('gcc-md.toggleFocus', () => {
         const editor = vscode.window.activeTextEditor;
         if (editor)
             focusProvider.toggleFocusMode(editor);
     }));
-    context.subscriptions.push(vscode.commands.registerCommand('gcc-md.toggleFocus_on', () => {
+    // Graph Launcher
+    context.subscriptions.push(vscode.commands.registerCommand('gcc-md.openDotFile', () => {
         const editor = vscode.window.activeTextEditor;
         if (editor)
-            focusProvider.toggleFocusMode(editor);
+            graphProvider.openDotFile(editor);
     }));
-    // Ensure this block is in your activate() function
+    // Pass Surfer
     context.subscriptions.push(vscode.commands.registerCommand('gcc-md.nextPass', () => {
         const editor = vscode.window.activeTextEditor;
         if (editor)
@@ -177,6 +148,21 @@ async function activate(context) {
         if (editor)
             surferProvider.navigate(editor, 'prev');
     }));
+    // Time Travel (Diff)
+    context.subscriptions.push(vscode.commands.registerCommand('gcc-md.comparePreviousPass', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            await diffProvider.compareWithPrevious(editor.document.uri);
+        }
+        else {
+            vscode.window.showErrorMessage("Open a GCC dump file first.");
+        }
+    }));
+    // File Watcher for MD files
+    const watcher = vscode.workspace.createFileSystemWatcher('**/*.md');
+    context.subscriptions.push(watcher.onDidChange((uri) => mdCache.indexFile(uri)));
+    context.subscriptions.push(watcher.onDidCreate((uri) => mdCache.indexFile(uri)));
+    context.subscriptions.push(watcher);
 }
 function deactivate() { }
 //# sourceMappingURL=extension.js.map
