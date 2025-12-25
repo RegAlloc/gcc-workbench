@@ -50,6 +50,12 @@
     "Programming Languages"
   ],
   "contributes": {
+    "snippets": [
+      {
+        "language": "gcc-md",
+        "path": "./snippets/gcc-md.json"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
@@ -101,8 +107,32 @@
         "command": "gcc-md.openDotFile",
         "title": "Open Graph (CFG)",
         "icon": "$(layers-dot)"
+      },
+      {
+        "command": "gcc-md.nextPass",
+        "title": "Next Pass",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "gcc-md.prevPass",
+        "title": "Previous Pass",
+        "icon": "$(arrow-left)"
       }
     ],
+    "keybindings": [
+   {
+      "command": "gcc-md.prevPass",
+      "key": "ctrl+alt+[",
+      "mac": "ctrl+alt+[", 
+      "when": "editorTextFocus && resourceFilename =~ /\\.[0-9]{3}[tir]\\.[^.]+$/"
+    },
+    {
+      "command": "gcc-md.nextPass",
+      "key": "ctrl+alt+]",
+      "mac": "ctrl+alt+]",
+      "when": "editorTextFocus && resourceFilename =~ /\\.[0-9]{3}[tir]\\.[^.]+$/"
+    } 
+  ],
     "menus": {
       "editor/title": [
         {
@@ -124,6 +154,16 @@
           "command": "gcc-md.openDotFile",
           "when": "resourceFilename =~ /\\.[0-9]{3}[tir]\\.[^.]+$/",
           "group": "navigation"
+        },
+        {
+          "command": "gcc-md.prevPass",
+          "group": "navigation@1",
+          "when": "editorLangId == gcc-rtl || editorLangId == gcc-gimple"
+        },
+        {
+          "command": "gcc-md.nextPass",
+          "group": "navigation@2",
+          "when": "editorLangId == gcc-rtl || editorLangId == gcc-gimple"
         }
       ],
       "view/title": [

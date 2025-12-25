@@ -10,6 +10,7 @@ import { GccPassDiffProvider } from './passDiffProvider';
 import { GccPassTreeProvider } from './passTreeProvider';
 import { GccFocusProvider } from './focusProvider'; // <--- 1. IMPORT THIS
 import { GccGraphProvider } from './graphProvider'; // <--- Import
+import { GccPassSurferProvider } from './passSurferProvider';
 
 
 const mdCache = new GccMdCache();
@@ -78,6 +79,7 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => {
         if (editor) ensureBackendIndexed(editor.document);
     }));
+    const surferProvider = new GccPassSurferProvider();
 
     // Watchers
     const watcher = vscode.workspace.createFileSystemWatcher('**/*.md');
@@ -140,6 +142,16 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('gcc-md.toggleFocus_on', () => {
         const editor = vscode.window.activeTextEditor;
         if (editor) focusProvider.toggleFocusMode(editor);
+    }));
+    // Ensure this block is in your activate() function
+    context.subscriptions.push(vscode.commands.registerCommand('gcc-md.nextPass', () => {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) surferProvider.navigate(editor, 'next');
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand('gcc-md.prevPass', () => {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) surferProvider.navigate(editor, 'prev');
     }));
 }
 

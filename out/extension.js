@@ -47,6 +47,7 @@ const passDiffProvider_1 = require("./passDiffProvider");
 const passTreeProvider_1 = require("./passTreeProvider");
 const focusProvider_1 = require("./focusProvider"); // <--- 1. IMPORT THIS
 const graphProvider_1 = require("./graphProvider"); // <--- Import
+const passSurferProvider_1 = require("./passSurferProvider");
 const mdCache = new mdCache_1.GccMdCache();
 const rtlCache = new rtlCache_1.RtlDefCache(); // Instantiate
 const initializedBackends = new Set();
@@ -107,6 +108,7 @@ async function activate(context) {
         if (editor)
             ensureBackendIndexed(editor.document);
     }));
+    const surferProvider = new passSurferProvider_1.GccPassSurferProvider();
     // Watchers
     const watcher = vscode.workspace.createFileSystemWatcher('**/*.md');
     context.subscriptions.push(watcher.onDidChange((uri) => mdCache.indexFile(uri)));
@@ -163,6 +165,17 @@ async function activate(context) {
         const editor = vscode.window.activeTextEditor;
         if (editor)
             focusProvider.toggleFocusMode(editor);
+    }));
+    // Ensure this block is in your activate() function
+    context.subscriptions.push(vscode.commands.registerCommand('gcc-md.nextPass', () => {
+        const editor = vscode.window.activeTextEditor;
+        if (editor)
+            surferProvider.navigate(editor, 'next');
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('gcc-md.prevPass', () => {
+        const editor = vscode.window.activeTextEditor;
+        if (editor)
+            surferProvider.navigate(editor, 'prev');
     }));
 }
 function deactivate() { }

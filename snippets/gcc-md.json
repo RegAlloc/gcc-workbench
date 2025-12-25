@@ -1,0 +1,50 @@
+{
+  "Define Instruction": {
+    "prefix": "definsn",
+    "body": [
+      "(define_insn \"${1:name}\"",
+      "  [(set (match_operand:${2:SI} 0 \"${3:register_operand}\" \"=${4:r}\")",
+      "        (${5:plus}:${2:SI} (match_operand:${2:SI} 1 \"${6:register_operand}\" \"${7:r}\")",
+      "                            (match_operand:${2:SI} 2 \"${8:immediate_operand}\" \"${9:i}\")))]",
+      "  \"\" ",
+      "  \"${10:add%i2\\\\t%0, %1, %2}\"",
+      "  [(set_attr \"type\" \"${11:alu}\")",
+      "   (set_attr \"length\" \"${12:4}\")])"
+    ],
+    "description": "Define a standard GCC instruction pattern"
+  },
+  "Define Expand": {
+    "prefix": "defexp",
+    "body": [
+      "(define_expand \"${1:name}\"",
+      "  [(set (match_operand:${2:SI} 0 \"${3:register_operand}\")",
+      "        (${4:op}:${2:SI} (match_operand:${2:SI} 1 \"${5:register_operand}\")",
+      "                         (match_operand:${2:SI} 2 \"${6:register_operand}\")))]",
+      "  \"\"",
+      "  {",
+      "    ${7:/* C code preparation */}",
+      "    DONE;",
+      "  })"
+    ],
+    "description": "Define an expansion pattern"
+  },
+  "Define Split": {
+    "prefix": "defsplit",
+    "body": [
+      "(define_split",
+      "  [(set (match_operand:${1:SI} 0 \"${2:register_operand}\")",
+      "        (${3:op}:${1:SI} (match_operand:${1:SI} 1 \"${4:register_operand}\")",
+      "                         (match_operand:${1:SI} 2 \"${5:immediate_operand}\")))]",
+      "  \"${6:reload_completed}\"",
+      "  [(set (match_dup 0) (${7:high}:${1:SI} (match_dup 2)))",
+      "   (set (match_dup 0) (lo_sum:${1:SI} (match_dup 0) (match_dup 2)))]",
+      "  \"\" )"
+    ],
+    "description": "Define a split pattern"
+  },
+  "Match Operand": {
+    "prefix": "match",
+    "body": "(match_operand:${1:SI} ${2:0} \"${3:register_operand}\" \"${4:r}\")",
+    "description": "Insert a match_operand"
+  }
+}
