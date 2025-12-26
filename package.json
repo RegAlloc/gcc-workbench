@@ -61,7 +61,7 @@
         {
           "id": "gcc-explorer",
           "title": "GCC Explorer",
-          "icon": "$(beaker)"
+          "icon":  "./pictures/gnu-dark.png"
         }
       ]
     },
@@ -219,8 +219,8 @@
         ],
         "configuration": "./language-configuration.json",
         "icon": {
-          "light": "./pictures/gcc.png",
-          "dark": "./pictures/gcc.png"
+          "light": "./pictures/gnu-dark.png",
+          "dark": "./pictures/gnu-light.png"
         }
       },
       {
@@ -233,8 +233,8 @@
         ],
         "configuration": "./language-configuration.json",
         "icon": {
-          "light": "./pictures/gcc.png",
-          "dark": "./pictures/gcc.png"
+          "light": "./pictures/gnu-dark.png",
+          "dark": "./pictures/gnu-light.png"
         }
       },
       {
@@ -248,8 +248,8 @@
         ],
         "configuration": "./language-configuration.json",
         "icon": {
-          "light": "./pictures/gcc.png",
-          "dark": "./pictures/gcc.png"
+          "light": "./pictures/gnu-dark.png",
+          "dark": "./pictures/gnu-light.png"
         }
       },
       {
@@ -262,8 +262,8 @@
         ],
         "configuration": "./language-configuration.json",
         "icon": {
-          "light": "./pictures/gcc.png",
-          "dark": "./pictures/gcc.png"
+          "light": "./pictures/gnu-dark.png",
+          "dark": "./pictures/gnu-light.png"
         }
       },
       {
@@ -276,8 +276,8 @@
         ],
         "configuration": "./language-configuration.json",
         "icon": {
-          "light": "./pictures/gcc.png",
-          "dark": "./pictures/gcc.png"
+          "light": "./pictures/gnu-dark.png",
+          "dark": "./pictures/gnu-light.png"
         }
       },
       {
@@ -290,8 +290,8 @@
         ],
         "configuration": "./language-configuration.json",
         "icon": {
-          "light": "./pictures/gcc.png",
-          "dark": "./pictures/gcc.png"
+          "light": "./pictures/gnu-dark.png",
+          "dark": "./pictures/gnu-light.png"
         }
       }
     ],
