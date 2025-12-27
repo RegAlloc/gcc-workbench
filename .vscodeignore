@@ -1,3 +1,14 @@
 .vscode/**
 .vscode-test/**
+src/**
+!src/rtl/rtl.def
+out/test/**
+test/**
+tsconfig.json
+.eslintrc.json
 .gitignore
+vsc-extension-quickstart.md
+**/*.map
+**/*.ts
+node_modules/**
+!node_modules
