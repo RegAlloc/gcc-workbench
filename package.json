@@ -34,7 +34,7 @@
     "toolchain"
   ],
   "engines": {
-    "vscode": "^1.70.0"
+    "vscode": "^1.50.0"
   },
   "main": "./out/extension.js",
   "scripts": {
