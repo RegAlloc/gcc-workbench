@@ -53,7 +53,7 @@
     "snippets": [
       {
         "language": "gcc-md",
-        "path": "./snippets/gcc-dump.json"
+        "path": "./snippets/gcc-md.json"
       }
     ],
     "viewsContainers": {
@@ -350,6 +350,7 @@
       },
       "files.associations": {
         "t-*": "makefile",
+        "x-*": "makefile",
         "config.in": "cpp",
         "config.*": "shellscript",
         "*.dot": "dot",

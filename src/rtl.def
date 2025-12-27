@@ -1367,6 +1367,314 @@ DEF_RTL_EXPR(DEFINE_SUBST, "define_subst", "sEsE", RTX_EXTRA)
    GCC internals manual, under "RTL Templates Transformations".  */
 DEF_RTL_EXPR(DEFINE_SUBST_ATTR, "define_subst_attr", "ssss", RTX_EXTRA)
 
+/* Includes the specified file. Shocking, I know. */
+
+DEF_RTL_EXPR(INCLUDE, "include", "", RTL_EXTRA)
+
+/* It contains a vector of name-value pairs. From that point on, wherever any of
+   the names appears in The MD file, it is as if the corresponding value had
+   been written instead. You may use define_constants multiple times; each
+   appearance adds more constants to the table. It is an error to redefine a
+   constant with a different value.
+
+   You could write:
+      (define_constants [
+        (R_BP 177)
+        (R_FC 178)
+        (R_CR 179)
+        (R_Q 180)])
+   The constants that are defined with a define constant are also output in the
+   insn-codes.h header file as #defines.*/
+
+DEF_RTL_EXPR(DEFINE_CONSTANTS, "define_constants", "", RTL_EXTRA)
+
+/* You can also use the machine description file to define enumerations. Like
+   the constants defined by define_constant, these enumerations are visible to
+   both the machine description file and the main C code. The syntax is as
+   follows:
+     (define_c_enum "name" [ value0 value1 (value32 32) value33
+       ...
+       valuen])
+   
+   This definition causes the equivalent of the following C code to appear in
+   insn-constants.h:
+   enum name {
+       value0 = 0,
+       value1 = 1,
+       value32 = 32,
+       value33 = 33,
+       ...
+       valuen= n
+   };
+   
+   #define NUM_cname_VALUES (n + 1)
+   
+   where cname is the capitalized form of name. It also makes each valuei
+   available in the machine description file, just as if it had been declared
+   with: (define_constants [(valuei i)]) Each valuei is usually an upper-case
+   identifier and usually begins with cname. You can split the enumeration
+   definition into as many statements as you like. The above example is directly
+   equivalent to:
+       (define_c_enum "name" [value0]) (define_c_enum "name"
+           [value1])
+           ...
+       (define_c_enum "name" [valuen]).  */
+
+DEF_RTL_EXPR(DEFINE_C_ENUM, "define_c_enum", "", RTL_EXTRA)
+
+/* Another way of defining an enumeration is to use define_enum:
+   (define_enum "name" [
+       value0
+       value1
+       ...
+       valuen
+       ])
+
+   This directive implies:
+       (define_c_enum "name" [
+           cname
+           cvalue0
+           _
+           cname
+           cvalue1
+           _
+           ...
+           cname
+           cvaluen
+           ])
+           _
+
+   where cvaluei is the capitalized form of valuei. However, unlike
+   define_c_enum, the enumerations defined by define_enum can be used in
+   attribute specifications. defining an attribute is to use: (define_enum_attr
+   "attr" "enum" default) This works in just the same way as define_attr, except
+   that the list of values is taken from a separate enumeration called enum (see
+   [define enum], page 517). This form allows you to use the same list of values
+   for several attributes without having to repeat the list each time. For
+   example:
+   (define_enum "processor" [ model_a model_b
+       ...
+      ])
+   (define_enum_attr "arch" "processor"
+       (const (symbol_ref "target_arch")))
+   (define_enum_attr "tune" "processor"
+       (const (symbol_ref "target_tune")))
+   
+   defines the same attributes as:
+   
+   (define_attr "arch" "model_a,model_b,..."
+       (const (symbol_ref "target_arch")))
+   (define_attr "tune" "model_a,model_b,..."
+       (const (symbol_ref "target_tune")))
+
+   but without duplicating the processor list. The second example defines two
+   separate C enums (attr_arch and attr_tune) whereas the first defines a single
+   C enum. */
+
+DEF_RTL_EXPR(DEFINE_ENUM, "define_enum", "", RTL_EXTRA)
+
+
+/* The syntax for defining a mode iterator is:
+   
+   (define_mode_iterator name [(mode1 "cond1") ... (moden "condn")])
+   
+   This allows subsequent .md file constructs to use the mode suffix :name.
+   Every construct that does so will be expanded n times, once with every use of :name
+   replaced by :mode1, once with every use replaced by :mode2, and so on. In the
+   expansion for a particular modei, every C condition will also require that condi
+   be true.
+   For example:
+   (define_mode_iterator P [(SI "Pmode == SImode") (DI "Pmode == DImode")])
+   defines a new mode suffix :P. Every construct that uses :P will be
+   expanded twice, once with every :P replaced by :SI and once with every :P
+   replaced by :DI. The :SI version will only apply if Pmode == SImode and the :DI
+   version will only apply if Pmode == DImode. As with other .md conditions, an
+   empty string is treated as “always true”. (mode "") can also be abbreviated to
+   mode. For example: (define_mode_iterator GPR [SI (DI "TARGET_64BIT")]) means
+   that the :DI expansion only applies if TARGET_64BIT but that the :SI expansion
+   has no such constraint.
+   
+   It is also possible to include iterators in other iterators. For example:
+   
+   (define_mode_iterator VI [V16QI V8HI V4SI V2DI])
+   (define_mode_iterator VF [V8HF V4SF (V2DF "TARGET_DOUBLE")])
+   (define_mode_iterator V [VI (VF "TARGET_FLOAT")])
+   
+   makes ‘:V’ iterate over the modes in VI and the modes in VF. When a construct
+   uses ‘:V’, the V8HF and V4SF expansions require ‘TARGET_FLOAT’ while the V2DF
+   expansion requires ‘TARGET_DOUBLE && TARGET_FLOAT’. Iterators are applied in the
+   order they are defined. This can be significant if two iterators are used in a
+   construct that requires substitutions.  */
+
+DEF_RTL_EXPR(DEFINE_MODE_ITERATOR, "define_mode_iterator", "", RTL_EXTRA)
+
+/* If an .md file construct uses mode iterators, each version of the construct will often need
+   lightly different strings or modes. For example:
+   
+   • When a define_expand defines several addm3 patterns (see Section 16.10 [Standard
+   Names], page 424), each expander will need to use the appropriate mode name for m.
+   
+   • When a define_insn defines several instruction patterns, each instruction will often
+   use a different assembler mnemonic.
+   
+   • When a define_insn requires operands with different modes, using an iterator for one
+   of the operand modes usually requires a specific mode for the other operand(s).
+   
+   GCC supports such variations through a system of “mode attributes”. There are two
+   standard attributes: mode, which is the name of the mode in lower case, and MODE, which
+   is the same thing in upper case. You can define other attributes using:
+   (define_mode_attr name [(mode1 "value1") ... (moden "valuen")])
+   where name is the name of the attribute and valuei is the value associated with modei.
+   When GCC replaces some :iterator with :mode, it will scan each string and mode in the
+   pattern for sequences of the form <iterator:attr>, where attr is the name of a mode attribute. If the attribute is defined for mode, the whole <...> sequence will be replaced
+   by the appropriate attribute value.
+
+   For example, suppose an .md file has:
+     (define_mode_iterator P [(SI "Pmode == SImode") (DI "Pmode == DImode")])
+     (define_mode_attr load [(SI "lw") (DI "ld")])
+
+   If one of the patterns that uses :P contains the string "<P:load>\t%0,%1", the SI version
+   of that pattern will use "lw\t%0,%1" and the DI version will use "ld\t%0,%1".
+   Here is an example of using an attribute for a mode:
+       (define_mode_iterator LONG [SI DI])
+       (define_mode_attr SHORT [(SI "HI") (DI "SI")])
+       (define_insn ...
+       (sign_extend:LONG (match_operand:<LONG:SHORT> ...)) ...)
+
+   The iterator: prefix may be omitted, in which case the substitution will be attempted
+   for every iterator expansion.  */
+
+DEF_RTL_EXPR(DEFINE_MODE_ATTR, "define_mode_attr", "", RTL_EXTRA)
+
+/* Code iterators operate in a similar way to mode iterators.
+   The construct:
+   (define_code_iterator name [(code1 "cond1") ... (coden "condn")])
+
+   defines a pseudo rtx code name that can be instantiated as codei if condition condi is
+   true. Each codei must have the same rtx format. See Section 13.2 [RTL Classes], page 282.
+   As with mode iterators, each pattern that uses name will be expanded n times, once with
+   all uses of name replaced by code1, once with all uses replaced by code2, and so on.
+   It is possible to define attributes for codes as well as for modes. There are two standard
+   code attributes: code, the name of the code in lower case, and CODE, the name of the code
+   in upper case. Other attributes are defined using:
+   (define_code_attr name [(code1 "value1") ... (coden "valuen")])
+
+   Instruction patterns can use code attributes as rtx codes, which can be useful if two
+   sets of codes act in tandem. For example, the following define_insn defines two patterns,
+   one calculating a signed absolute difference and another calculating an unsigned absolute
+   difference:
+       (define_code_iterator any_max [smax umax])
+       
+       (define_code_attr paired_min [(smax "smin") (umax "umin")])
+       
+       (define_insn ...
+           [(set (match_operand:SI 0 ...)
+           (minus:SI (any_max:SI (match_operand:SI 1 ...)
+           (match_operand:SI 2 ...))
+           (<paired_min>:SI (match_dup 1) (match_dup 2))))]
+       ...)
+   
+   The signed version of the instruction uses smax and smin while the unsigned version uses
+   umax and umin. There are no versions that pair smax with umin or umax with smin.
+   It is also possible to use other types of attributes as codes, in a similar way. For example,
+   an int iterator could be used to iterate over unspecnumbers, with an int attribute specifying
+   an associated rtx code.
+   Here’s an example of code iterators in action, taken from the MIPS port:
+       (define_code_iterator any_cond [unordered ordered unlt unge uneq ltgt unle ungt
+            q ne gt ge lt le gtu geu ltu leu])
+       
+      (define_expand "b<code>"
+           [(set (pc)
+           (if_then_else (any_cond:CC (cc0)
+           (const_int 0))
+           (label_ref (match_operand 0 ""))
+           (pc)))]
+           ""
+      {
+      gen_conditional_branch (operands, <CODE>);
+      DONE;
+      })
+   
+   This is equivalent to:
+       (define_expand "bunordered"
+           [(set (pc)
+           (if_then_else (unordered:CC (cc0)
+           (const_int 0))
+           (label_ref (match_operand 0 ""))
+           (pc)))]
+       ""
+       {
+       gen_conditional_branch (operands, UNORDERED);
+       DONE;
+       })
+
+      (define_expand "bordered"
+          [(set (pc)
+          (if_then_else (ordered:CC (cc0)
+          (const_int 0))
+          (label_ref (match_operand 0 ""))
+          (pc)))]
+      ""
+      {
+      gen_conditional_branch (operands, ORDERED);
+      DONE;
+      }) */
+
+DEF_RTL_EXPR(DEFINE_CODE_ITERATOR, "define_code_iterator", "", RTL_EXTRA)
+DEF_RTL_EXPR(DEFINE_CODE_ATTR, "define_code_attr", "", RTL_EXTRA)
+
+/* Int iterators operate in a similar way to code iterators.
+   The construct:
+   (define_int_iterator name [(int1 "cond1") ... (intn "condn")])
+   defines a pseudo integer constant name that can be instantiated as inti if condition condi
+   is true. Int iterators can appear in only those rtx fields that have ‘i’, ‘n’, ‘w’, or ‘p’ as the
+   specifier. This means that each int has to be a constant defined using ‘define_constant’
+   or ‘define_c_enum’.
+   As with mode and code iterators, each pattern that uses name will be expanded n times,
+   once with all uses of name replaced by int1, once with all uses replaced by int2, and so on.
+   See Section 16.24.1.1 [Defining Mode Iterators], page 518.
+   It is possible to define attributes for ints as well as for codes and modes. Attributes are
+   defined using:
+   (define_int_attr attr_name [(int1 "value1") ... (intn "valuen")])
+   In additon to these user-defined attributes, it is possible to use ‘<name>’ to refer to the
+   current expansion of iterator name (such as int1, int2, and so on).
+   Here’s an example of int iterators in action, taken from the ARM port:
+   (define_int_iterator QABSNEG [UNSPEC_VQABS UNSPEC_VQNEG])
+   (define_int_attr absneg [(UNSPEC_VQABS "abs") (UNSPEC_VQNEG "neg")])
+   (define_insn "neon_vq<absneg><mode>"
+   [(set (match_operand:VDQIW 0 "s_register_operand" "=w")
+   (unspec:VDQIW [(match_operand:VDQIW 1 "s_register_operand" "w")
+   (match_operand:SI 2 "immediate_operand" "i")]
+   QABSNEG))]
+   "TARGET_NEON"
+   "vq<absneg>.<V_s_elem>\t%<V_reg>0, %<V_reg>1"
+   [(set_attr "type" "neon_vqneg_vqabs")]
+   )
+   This is equivalent to:
+   (define_insn "neon_vqabs<mode>"
+   [(set (match_operand:VDQIW 0 "s_register_operand" "=w")
+   (unspec:VDQIW [(match_operand:VDQIW 1 "s_register_operand" "w")
+   (match_operand:SI 2 "immediate_operand" "i")]
+   UNSPEC_VQABS))]
+   "TARGET_NEON"
+   "vqabs.<V_s_elem>\t%<V_reg>0, %<V_reg>1"
+   [(set_attr "type" "neon_vqneg_vqabs")]
+   )
+   (define_insn "neon_vqneg<mode>"
+   [(set (match_operand:VDQIW 0 "s_register_operand" "=w")
+   (unspec:VDQIW [(match_operand:VDQIW 1 "s_register_operand" "w")
+   (match_operand:SI 2 "immediate_operand" "i")]
+   UNSPEC_VQNEG))]
+   "TARGET_NEON"
+   "vqneg.<V_s_elem>\t%<V_reg>0, %<V_reg>1"
+   [(set_attr "type" "neon_vqneg_vqabs")]
+   )*/
+
+DEF_RTL_EXPR(DEFINE_INT_ITERATOR, "define_int_iterator", "", RTL_EXTRA)
+DEF_RTL_EXPR(DEFINE_INT_ATTR, "define_int_attr", "", RTL_EXTRA)
+
+
+
 #endif /* GENERATOR_FILE */
 
 /*

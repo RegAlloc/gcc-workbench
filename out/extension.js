@@ -54,6 +54,7 @@ const diffProvider = new passDiffProvider_1.GccPassDiffProvider();
 const focusProvider = new focusProvider_1.GccFocusProvider();
 const graphProvider = new graphProvider_1.GccGraphProvider();
 const surferProvider = new passSurferProvider_1.GccPassSurferProvider();
+// Track which folders we have already indexed to avoid spamming re-index on every tab switch
 const initializedBackends = new Set();
 async function activate(context) {
     // 1. Helper: Auto-detect GCC Dump Language
@@ -80,17 +81,31 @@ async function activate(context) {
     // 2. Initialize Caches
     await rtlCache.initialize(context);
     // 3. Selectors
-    // CRITICAL FIX: Added 'gcc-gimple' so hover/links work in tree dumps too
     const mdSelector = { scheme: 'file', language: 'gcc-md' };
     const dumpSelector = [
         { scheme: 'file', language: 'gcc-rtl' },
+        { scheme: 'file', language: 'gcc-gimple' }, // Added gimple support for hover
         { scheme: 'file', language: 'gcc-md' }
     ];
-    // 4. Document Watchers (Language Detection)
+    // 4. Startup Logic (Run immediately when window loads)
     if (vscode.window.activeTextEditor) {
-        await ensureDumpLanguage(vscode.window.activeTextEditor.document);
-        focusProvider.restoreState(vscode.window.activeTextEditor);
+        const editor = vscode.window.activeTextEditor;
+        const doc = editor.document;
+        // A. Detect Language
+        await ensureDumpLanguage(doc);
+        // B. Index MD File (The missing piece!)
+        if (doc.languageId === 'gcc-md') {
+            const dir = path.dirname(doc.uri.fsPath);
+            if (!initializedBackends.has(dir)) {
+                initializedBackends.add(dir);
+                // console.log("Indexing GCC Backend on Startup: " + dir);
+                mdCache.forceReindex(doc.uri);
+            }
+        }
+        // C. Restore Focus UI
+        focusProvider.restoreState(editor);
     }
+    // 5. Event Listeners (Tab Switching)
     context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(async (editor) => {
         if (editor) {
             await ensureDumpLanguage(editor.document);
@@ -110,7 +125,7 @@ async function activate(context) {
             vscode.commands.executeCommand('setContext', 'gcc-dump.focusModeActive', false);
         }
     }));
-    // 5. Providers & Commands
+    // 6. Providers
     const treeProvider = new passTreeProvider_1.GccPassTreeProvider();
     vscode.window.registerTreeDataProvider('gcc-dump-explorer', treeProvider);
     // MD Specific
@@ -119,13 +134,16 @@ async function activate(context) {
     context.subscriptions.push(vscode.languages.registerDocumentLinkProvider(mdSelector, new linkProvider_1.GCCMdLinkProvider()));
     // Generic (RTL + GIMPLE + MD)
     context.subscriptions.push(vscode.languages.registerHoverProvider(dumpSelector, new mdHoverProvider_1.GccMdHoverProvider(mdCache, rtlCache)));
-    // Commands
+    // 7. Commands
+    // Helper Commands
     context.subscriptions.push(vscode.commands.registerCommand('gcc-md.openFilePermanent', (uri) => {
         vscode.window.showTextDocument(uri, { preview: false });
     }));
+    // Tree View Commands
     context.subscriptions.push(vscode.commands.registerCommand('gcc-dump.refreshPasses', () => treeProvider.refresh()));
     context.subscriptions.push(vscode.commands.registerCommand('gcc-dump.filterPasses', () => treeProvider.promptFilter()));
-    // Focus Mode
+    // Focus Mode (Toggle) - The "Eye" Button
+    // We register TWO commands for the same logic to handle the toggle UI state
     context.subscriptions.push(vscode.commands.registerCommand('gcc-dump.toggleFocus', () => {
         const editor = vscode.window.activeTextEditor;
         if (editor)
@@ -134,7 +152,7 @@ async function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('gcc-dump.toggleFocus_on', () => {
         const editor = vscode.window.activeTextEditor;
         if (editor)
-            focusProvider.toggleFocusMode(editor); // Same logic!
+            focusProvider.toggleFocusMode(editor);
     }));
     // Graph Launcher
     context.subscriptions.push(vscode.commands.registerCommand('gcc-dump.openDotFile', () => {

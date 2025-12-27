@@ -59,16 +59,55 @@ class RtlDefCache {
     // --- PARSER FOR RTL.DEF ---
     parseRtlDef(content) {
         const lines = content.split('\n');
-        const isDef = (line) => line.trim().startsWith('DEF_RTL_EXPR');
+        // Regex matches: DEF_RTL_EXPR(NAME, "name", ...)
+        const defRegex = /DEF_RTL_EXPR\s*\(\s*[A-Z0-9_]+,\s*"([^"]+)"/;
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
-            if (isDef(line)) {
-                // DEF_RTL_EXPR(ASHIFT, "ashift", ...)
-                // We extract the string name in quotes
-                const match = /DEF_RTL_EXPR\s*\(\s*[A-Z0-9_]+,\s*"([^"]+)"/.exec(line);
+            if (line.startsWith('DEF_RTL_EXPR')) {
+                const match = defRegex.exec(line);
                 if (match) {
                     const name = match[1];
-                    this.extractAndStoreDoc(name, i, lines, isDef);
+                    let docLines = [];
+                    let j = i - 1;
+                    // 1. Skip blank lines immediately above the definition
+                    while (j >= 0 && lines[j].trim() === '') {
+                        j--;
+                    }
+                    // 2. Parse the C-style comment block
+                    if (j >= 0 && lines[j].trim().endsWith('*/')) {
+                        let insideComment = true;
+                        while (j >= 0 && insideComment) {
+                            let commentLine = lines[j].trim();
+                            // Remove closing '*/'
+                            if (commentLine.endsWith('*/')) {
+                                commentLine = commentLine.substring(0, commentLine.length - 2);
+                            }
+                            // Remove opening '/*'
+                            if (commentLine.startsWith('/*')) {
+                                commentLine = commentLine.substring(2);
+                                insideComment = false;
+                            }
+                            // Remove the leading '*' often found in C comments (e.g. " * text")
+                            // We trim ONLY the left side to handle the '*', but keep the text
+                            commentLine = commentLine.replace(/^\s*\*\s?/, '');
+                            // If the line has text, add it. 
+                            // Even empty lines in a comment block are useful for paragraph breaks.
+                            if (commentLine.length > 0 || docLines.length > 0) {
+                                docLines.unshift(commentLine);
+                            }
+                            j--;
+                        }
+                    }
+                    // 3. Store in Cache with Markdown Line Breaks
+                    if (docLines.length > 0) {
+                        // CRITICAL FIX: Join with "  \n" (Two spaces + Newline)
+                        // This forces VS Code to render strict line breaks.
+                        const finalDoc = docLines.join('  \n');
+                        this.definitions.set(name, finalDoc);
+                    }
+                    else {
+                        this.definitions.set(name, `**${name}**`);
+                    }
                 }
             }
         }
