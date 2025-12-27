@@ -1,97 +1,38 @@
 # Changelog
 
-2025-12-13  Kishan Parmar  <kparmar2101@gmail.com>
+All notable changes to the "GCC Workbench" extension will be documented in this file.
 
-	Till Version 1.0.0
+### [2.0.0] - kparmar2101@gmail.com - 2025-12-27
+#### 🚀 Major Release: The Workbench Update
+This release transforms the extension from a syntax highlighter into a full Integrated Development Environment (IDE) for GCC engineers.
 
-2025-12-13  Kishan Parmar  <kparmar2101@gmail.com>
+#### Added
+- **GCC Explorer:** A new sidebar view that automatically discovers and sorts GCC dump files (`.t`, `.r`, `.i`) chronologically by pass number.
+- **Pass Surfing:** Navigation commands (`Ctrl+Alt+]` / `Ctrl+Alt+[`) to jump instantly to the next or previous compilation pass.
+- **Diff-view:** "Compare with Previous Pass" button to visualize optimization changes without leaving the editor.
+- **Focus Mode:** A toggleable "Noise Filter" (Eye Icon) to hide comments in RTL/GIMPLE dumps.
+- **Graph Visualization:** One-click generation of Control Flow Graphs (CFG) from the current dump file.
+- **Intelligent Navigation:**
+    - **Go to Definition:** Support for jumping to attribute and iterator definitions within Machine Description (`.md`) files.
+    - **RTL Hovers:** Rich documentation for standard RTL codes (e.g., `define_insn`, `set`) parsed directly from `rtl.def`.
 
-	Till Version 1.0.0
+#### Changed
+- **Rebranding:** Extension display name changed from "GCC Syntax Highlighting" to **"GCC Workbench"**.
+- Updated `README.md` to reflect new capabilities.
+- improved startup performance by lazy-loading indexers.
 
-2025-12-13  Kishan Parmar  <kparmar2101@gmail.com>
+#### Fixed
+- Fixed an issue where "Go to Definition" would not work immediately upon VS Code startup.
+- Fixed hover text formatting to correctly display multi-line documentation from C comments.
 
-	GCC Option files and DejaGnu expect scripts
-
-2025-12-13  Kishan Parmar  <kparmar2101@gmail.com>
-
-	GCC Option files and DejaGnu expect scripts
-
-2025-12-13  Kishan Parmar  <kparmar2101@gmail.com>
-
-	0.1.4
-
-2025-12-12  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Add support for RS6000 builtins
-
-2025-12-12  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Add support for RS6000 builtins
-
-2025-12-11  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Consider t-* files as Makefile
-
-2025-12-11  Kishan Parmar  <kparmar2101@gmail.com>
-
-	0.1.3
-
-2025-12-09  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Downgrade vscode engine version
-
-2025-12-09  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Publisher trust & Security
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Workaround for publish
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	0.1.1
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Syntax Previewes
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Syntax Previewes
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Syntax Previewes
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Syntax Previewes
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	testcase
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	LICENCE : GPL-3.0-or-later
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Add repo info
-
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Add Keywords
-
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Add Keywords
-
-2025-12-08  Kishan Parmar  <kparmar2101@gmail.com>
-
-	Feature: Add CHANGELOG.md
-
-
+### [1.0.0] - kparmar2101@gmail.com - 2025-12-13
+#### Added
+- Initial release.
+- **Syntax Highlighting Support:**
+    - Machine Description files (`.md`)
+    - RTL Dumps (`.expand`, `.vregs`, `.r.*`)
+    - GIMPLE Dumps (`.ssa`, `.optimized`, `.t.*`)
+    - Match patterns (`match.pd`)
+    - DejaGnu Expect scripts (`.exp`)
+    - PowerPC/RS6000 Builtin definitions (`.def`)
+    - GCC Option files (`.opt`)
