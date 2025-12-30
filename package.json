@@ -130,7 +130,12 @@
         "command": "gcc-dump.prevPass",
         "title": "Previous Pass",
         "icon": "$(arrow-left)"
-      }
+      },
+      {
+            "command": "gcc-workbench.viewSource",
+            "title": "View Source (Split)",
+            "icon": "$(file-code)"
+        }
     ],
     "keybindings": [
       {
@@ -177,7 +182,12 @@
           "command": "gcc-dump.nextPass",
           "group": "navigation@5",
           "when": "editorLangId == gcc-rtl || editorLangId == gcc-gimple"
-        }
+        },
+        {
+                "command": "gcc-workbench.viewSource",
+                "group": "navigation",
+                "when": "resourceLangId =~ /gcc-rtl|gcc-gimple/"
+            }
       ],
       "view/title": [
         {

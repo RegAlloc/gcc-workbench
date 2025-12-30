@@ -31,6 +31,7 @@ import { GccPassDiffProvider } from './passDiffProvider';
 import { GccPassSurferProvider } from './passSurferProvider';
 import { GccPassTreeProvider } from './passTreeProvider';
 import { RtlDefCache } from './rtlCache';
+import { SourceMapper } from './sourceMapper'; // Import the new class
 
 const mdCache = new GccMdCache();
 const rtlCache = new RtlDefCache();
@@ -38,6 +39,9 @@ const diffProvider = new GccPassDiffProvider();
 const focusProvider = new GccFocusProvider();
 const graphProvider = new GccGraphProvider();
 const surferProvider = new GccPassSurferProvider();
+
+// Keep a global reference to prevent garbage collection
+let sourceMapper: SourceMapper;
 
 // Track which folders we have already indexed to avoid spamming re-index on every tab switch
 const initializedBackends = new Set<string>();
@@ -124,7 +128,16 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.commands.executeCommand('setContext', 'gcc-dump.focusModeActive', false);
       }
     }));
+  // Source Mapper
+  sourceMapper = new SourceMapper(context);
+  const viewSourceCmd = vscode.commands.registerCommand('gcc-workbench.viewSource', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            await sourceMapper.enable(editor);
+        }
+    });
 
+    context.subscriptions.push(viewSourceCmd);
   // 6. Providers
   const treeProvider = new GccPassTreeProvider();
   vscode.window.registerTreeDataProvider('gcc-dump-explorer', treeProvider);
@@ -212,4 +225,8 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(watcher);
 }
 
-export function deactivate() { }
+export function deactivate() {
+    if (sourceMapper) {
+        sourceMapper.dispose();
+    }
+}

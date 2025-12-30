@@ -66,12 +66,15 @@ const passDiffProvider_1 = require("./passDiffProvider");
 const passSurferProvider_1 = require("./passSurferProvider");
 const passTreeProvider_1 = require("./passTreeProvider");
 const rtlCache_1 = require("./rtlCache");
+const sourceMapper_1 = require("./sourceMapper"); // Import the new class
 const mdCache = new mdCache_1.GccMdCache();
 const rtlCache = new rtlCache_1.RtlDefCache();
 const diffProvider = new passDiffProvider_1.GccPassDiffProvider();
 const focusProvider = new focusProvider_1.GccFocusProvider();
 const graphProvider = new graphProvider_1.GccGraphProvider();
 const surferProvider = new passSurferProvider_1.GccPassSurferProvider();
+// Keep a global reference to prevent garbage collection
+let sourceMapper;
 // Track which folders we have already indexed to avoid spamming re-index on every tab switch
 const initializedBackends = new Set();
 async function activate(context) {
@@ -143,6 +146,15 @@ async function activate(context) {
             vscode.commands.executeCommand('setContext', 'gcc-dump.focusModeActive', false);
         }
     }));
+    // Source Mapper
+    sourceMapper = new sourceMapper_1.SourceMapper(context);
+    const viewSourceCmd = vscode.commands.registerCommand('gcc-workbench.viewSource', async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            await sourceMapper.enable(editor);
+        }
+    });
+    context.subscriptions.push(viewSourceCmd);
     // 6. Providers
     const treeProvider = new passTreeProvider_1.GccPassTreeProvider();
     vscode.window.registerTreeDataProvider('gcc-dump-explorer', treeProvider);
@@ -205,5 +217,9 @@ async function activate(context) {
     context.subscriptions.push(watcher.onDidCreate((uri) => mdCache.indexFile(uri)));
     context.subscriptions.push(watcher);
 }
-function deactivate() { }
+function deactivate() {
+    if (sourceMapper) {
+        sourceMapper.dispose();
+    }
+}
 //# sourceMappingURL=extension.js.map
