@@ -100,7 +100,9 @@ async function activate(context) {
         }
     };
     // 2. Initialize Caches
-    await rtlCache.initialize(context);
+    rtlCache.initialize(context).then(() => {
+        console.log("RTL Cache Ready");
+    });
     // 3. Selectors
     const mdSelector = { scheme: 'file', language: 'gcc-md' };
     const dumpSelector = [

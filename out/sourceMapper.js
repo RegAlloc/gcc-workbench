@@ -169,78 +169,109 @@ class SourceMapper {
         this.startSync();
         vscode.window.showInformationMessage(`Linked RTL to source: ${path.basename(rawPath)}`);
     }
-    // ⚡️ THE HIGH-PERFORMANCE PARSER
-    buildMapping(rtlText) {
+    // ⚡️ HARDCORE MODE: ZERO-ALLOCATION PARSER
+    // Scans the 50MB string directly without splitting it into lines.
+    // Drastically reduces Garbage Collection (GC) pauses.
+    buildMapping(text) {
         this.sourceToRtlRanges.clear();
         this.rtlBlocks = [];
-        const lines = rtlText.split('\n');
-        const len = lines.length;
+        const len = text.length;
+        // State Machine Variables
         let balance = 0;
-        let startLine = -1;
-        let blockSourceLine = -1;
+        let startLine = 0; // The line number where the current block started
+        let currentLine = 0; // The line number we are currently scanning
+        let lineStartIdx = 0; // The character index where the current line started
+        let blockStartIndex = -1; // Character index where the block started '('
+        let blockSourceLine = -1; // The result found: "filename":123
+        let inString = false;
+        // ASCII Constants (Hoisted for speed)
         const CHAR_OPEN = 40; // (
         const CHAR_CLOSE = 41; // )
         const CHAR_QUOTE = 34; // "
+        const CHAR_COLON = 58; // :
+        const CHAR_NL = 10; // \n
         const CHAR_0 = 48;
         const CHAR_9 = 57;
         for (let i = 0; i < len; i++) {
-            const line = lines[i];
-            const lineLen = line.length;
-            if (lineLen === 0)
+            const c = text.charCodeAt(i);
+            // 1. Handle Newlines (Track Line Number)
+            if (c === CHAR_NL) {
+                currentLine++;
+                lineStartIdx = i + 1;
                 continue;
-            let inString = false;
-            let localOpen = 0;
-            let localClose = 0;
-            for (let j = 0; j < lineLen; j++) {
-                const c = line.charCodeAt(j);
-                if (c === CHAR_QUOTE) {
-                    inString = !inString;
+            }
+            // 2. Handle Strings (Ignore contents)
+            if (c === CHAR_QUOTE) {
+                // Check for escaped quote? (Simplified for speed, usually fine for RTL)
+                inString = !inString;
+                continue;
+            }
+            if (inString)
+                continue;
+            // 3. Handle Parentheses (Structure)
+            if (c === CHAR_OPEN) {
+                // If this is the START of a top-level block
+                if (balance === 0) {
+                    startLine = currentLine; // Record which line this block started on
+                    blockStartIndex = i;
+                    blockSourceLine = -1; // Reset match
                 }
-                else if (!inString) {
-                    if (c === CHAR_OPEN)
-                        localOpen++;
-                    else if (c === CHAR_CLOSE)
-                        localClose++;
+                balance++;
+            }
+            else if (c === CHAR_CLOSE) {
+                balance--;
+                // If this is the END of a top-level block
+                if (balance === 0 && blockStartIndex !== -1) {
+                    // Commit Block if we found a source mapping
+                    if (blockSourceLine !== -1) {
+                        // Push to Binary Search Array
+                        this.rtlBlocks.push({
+                            start: startLine,
+                            end: currentLine, // The block ends on the current line
+                            sourceLine: blockSourceLine
+                        });
+                        // Push to Range Map (for Source -> RTL highlighting)
+                        let ranges = this.sourceToRtlRanges.get(blockSourceLine);
+                        if (!ranges) {
+                            ranges = [];
+                            this.sourceToRtlRanges.set(blockSourceLine, ranges);
+                        }
+                        // Create Range object (Allocation is unavoidable here, but minimized)
+                        ranges.push(new vscode.Range(startLine, 0, currentLine, 1000));
+                    }
+                    // Reset
+                    blockStartIndex = -1;
                 }
             }
-            if (balance === 0 && line.charCodeAt(0) === CHAR_OPEN) {
-                startLine = i;
-                blockSourceLine = -1;
-            }
-            balance += (localOpen - localClose);
-            if ((balance > 0 || startLine === i) && blockSourceLine === -1) {
-                const idx = line.indexOf('":');
-                if (idx !== -1) {
-                    let p = idx + 2;
-                    const numStart = p;
-                    while (p < lineLen) {
-                        const c = line.charCodeAt(p);
-                        if (c < CHAR_0 || c > CHAR_9)
+            // 4. Handle Source Marker Detection: ":123
+            // Optimization: Only look for markers if we are inside a block or starting one
+            if (balance > 0 && blockSourceLine === -1) {
+                // We are looking for the sequence '":' (Quote followed by Colon)
+                // We check 'c' is Colon, and previous char was Quote
+                if (c === CHAR_COLON && i > 0 && text.charCodeAt(i - 1) === CHAR_QUOTE) {
+                    // Found '":'. Now we must parse the integer immediately following.
+                    // Scan forward from i+1 until non-digit
+                    let p = i + 1;
+                    let numStart = p;
+                    let hasDigits = false;
+                    // Peek forward manually (safe because string is in memory)
+                    while (p < len) {
+                        const digit = text.charCodeAt(p);
+                        if (digit < CHAR_0 || digit > CHAR_9)
                             break;
+                        hasDigits = true;
                         p++;
                     }
-                    if (p > numStart) {
-                        const numStr = line.substring(numStart, p);
+                    if (hasDigits) {
+                        // We found a number!
+                        // This is the ONLY substring allocation in the whole loop
+                        const numStr = text.substring(numStart, p);
                         blockSourceLine = parseInt(numStr) - 1;
+                        // Optimization: Skip the loop iterator forward to 'p'
+                        // so we don't re-scan the digits
+                        i = p - 1;
                     }
                 }
-            }
-            if (balance === 0 && startLine !== -1) {
-                if (blockSourceLine !== -1) {
-                    // Commit Block
-                    this.rtlBlocks.push({
-                        start: startLine,
-                        end: i,
-                        sourceLine: blockSourceLine
-                    });
-                    let ranges = this.sourceToRtlRanges.get(blockSourceLine);
-                    if (!ranges) {
-                        ranges = [];
-                        this.sourceToRtlRanges.set(blockSourceLine, ranges);
-                    }
-                    ranges.push(new vscode.Range(startLine, 0, i, 1000));
-                }
-                startLine = -1;
             }
         }
     }
