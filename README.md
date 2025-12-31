@@ -18,11 +18,14 @@ GCC produces hundreds of dump files during compilation. Navigating them manually
 
 ## Key Features
 
-### Source <-> RTL Mapping (Godbolt Style)
+### Source <-> RTL Mapping
+
+![Source <-> RTL Mapping Preview](https://raw.githubusercontent.com/RegAlloc/gcc-workbench/main/pictures/source-rtl.png)
+
 ### Instant Hover Documentation
 Understand GCC internals without leaving the editor.
 * **RTL Definitions:** Hover over ir insns like `set`, `parallel`, or regnotes `REG_DEAD` to see their official documentation (parsed from `rtl.def` and `reg-notes.def`).
-* **Performance:** pre-compiled JSON engine for zero-latency lookups, even on slow remote machines.
+![Documentation Preview](https://raw.githubusercontent.com/RegAlloc/gcc-workbench/main/pictures/documentation.png)
 
 ---
 

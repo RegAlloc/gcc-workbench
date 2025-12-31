@@ -21,3 +21,7 @@ node_modules/**
 testcase/**
 TODO.md
 pictures/**
+!pictures/gcc.png
+!pictures/gnu-dark.png
+!pictures/rs6000.png
+!pictures/gnu-light.png
