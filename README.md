@@ -1,7 +1,7 @@
 # GCC Workbench
 
 <p align="center">
-  <img src="pictures/gcc.png" alt="GCC Workbench Logo" width="300"/>
+  <img src="https://raw.githubusercontent.com/RegAlloc/gcc-workbench/main/pictures/gcc.png" alt="GCC Workbench Logo" width="300"/>
 </p>
 
 **Extension version:** 2.0.0
@@ -12,18 +12,29 @@ It goes beyond simple syntax highlighting for **GCC internals** by adding naviga
 
 ## What is this useful for?
 
-GCC produces hundreds of dump files during compilation. navigating them manually is tedious, and reading them is often cluttered with debug noise. This extension organizes that chaos into a simple workspace.
+GCC produces hundreds of dump files during compilation. Navigating them manually is tedious, and reading them is often cluttered with debug noise. This extension organizes that chaos into a simple workspace.
 
 ---
 
-## 🔧 Workbench Features
+## Key Features
+
+### Source <-> RTL Mapping (Godbolt Style)
+### Instant Hover Documentation
+Understand GCC internals without leaving the editor.
+* **RTL Definitions:** Hover over ir insns like `set`, `parallel`, or regnotes `REG_DEAD` to see their official documentation (parsed from `rtl.def` and `reg-notes.def`).
+* **Performance:** pre-compiled JSON engine for zero-latency lookups, even on slow remote machines.
+
+---
+
+## 🔧 Workbench Tools
 
 ### 1. Compilation Pass Explorer
 Instead of `ls -ltr *expand*`, use the **GCC Explorer** sidebar view.
 * Automatically finds all GCC dump files (`.t`, `.r`, `.i`) in your workspace.
 * Sorts them chronologically by pass number (e.g., `005t` -> `300r`).
 * Filters passes by type (GIMPLE vs RTL) or name.
-* **Explorer Review:** ![Match Pattern Preview](pictures/Explorer.png)
+
+![Explorer Preview](https://raw.githubusercontent.com/RegAlloc/gcc-workbench/main/pictures/Explorer.png)
 
 ### 2. Pass Navigation ("Surfing")
 Move through the compilation pipeline without leaving the editor.
@@ -33,7 +44,8 @@ Move through the compilation pipeline without leaving the editor.
 ### 3. Pass Diff
 * **Compare with Previous:** One-click button to open a diff view against the previous pass.
 * Instantly visualize exactly what optimizations were performed by a specific pass.
-* **Diff-view:** ![Diff-view](pictures/Diff-view.png)
+
+![Diff View](https://raw.githubusercontent.com/RegAlloc/gcc-workbench/main/pictures/Diff-view.png)
 
 ### 4. Focus Mode (Noise Filter)
 RTL and GIMPLE dumps are often 50% metadata.
@@ -43,7 +55,8 @@ RTL and GIMPLE dumps are often 50% metadata.
 ### 5. Control Flow Visualization
 * **Open Graph:** One-click button to render the current dump as a Control Flow Graph (CFG) using Graphviz.
 * *Note: Requires a generic Graphviz/DOT extension to be installed for the final rendering.*
-* **cfg graphviz:** ![cfg-graphviz](pictures/cfg.png)
+
+![CFG Preview](https://raw.githubusercontent.com/RegAlloc/gcc-workbench/main/pictures/cfg.png)
 
 ### 6. Intelligent MDL/RTL Editing
 * **Go to Definition:** Jump from iterator usages or attribute names in `.md` files directly to their definitions.
@@ -59,12 +72,12 @@ When hacking on GCC, you often need to read and understand complex internal form
 * **Constructs:** `define_insn`, `define_expand`, `define_split`, `define_peephole2`, iterators, attributes.
 * **Operands:** Distinct coloring for registers, modes, and constraints.
 * **Embedded Code:** Highlights C/C++ blocks embedded inside MD files.
-![GCC Machine Description Preview](pictures/GCC-Machine-Description.png)
+
+![GCC Machine Description Preview](https://raw.githubusercontent.com/RegAlloc/gcc-workbench/main/pictures/GCC-Machine-Description.png)
 
 ### 2. RTL Dumps (`.expand`, `.vregs`, etc.)
 * **Records:** `insn`, `jump_insn`, `call_insn`, `note`, `barrier`, `code_label`.
 * **Data:** Registers (`reg:DI 3`), vector modes, `const_int`.
-* **Screenshot:** `pictures/RTL-Dump.png`
 
 ### 3. GIMPLE Dumps (`.ssa`, `.optimized`, etc.)
 * **Structure:** Basic blocks, PHI nodes, and SSA names.
@@ -73,7 +86,8 @@ When hacking on GCC, you often need to read and understand complex internal form
 ### 4. `match.pd` Patterns
 * **Rules:** `match` / `simplify` rules.
 * **Trees:** Operator trees (e.g., `plus`, `mult`, `bit_and`) and capture logic (`@x`).
-* **Match.pd :** ![Match Pattern Preview](pictures/Match.png)
+
+![Match Pattern Preview](https://raw.githubusercontent.com/RegAlloc/gcc-workbench/main/pictures/Match.png)
 
 ### 5. Additional Formats
 * **PowerPC/RS6000 Builtins:** `rs6000-builtin.def` highlighting.
