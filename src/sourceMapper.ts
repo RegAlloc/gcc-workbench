@@ -1,42 +1,87 @@
+/*
+ * Copyright (C) 2025 Kishan Parmar
+ *
+ * This file is part of GCC Workbench.
+ *
+ * GCC Workbench is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * GCC Workbench is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GCC Workbench.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
-// 🎨 LAYER 1: RAINBOW (Structure)
-// Kept very low opacity (0.03) to just give a hint of structure.
+// 🎨 LAYER 1: RAINBOW PALETTE
+// UPDATED: Opacity increased to 0.05 (was 0.03) for better visibility.
 const rainbowPalette = [
-    'rgba(255, 0, 0, 0.03)', 'rgba(0, 255, 0, 0.03)', 'rgba(0, 0, 255, 0.03)',
-    'rgba(255, 255, 0, 0.03)', 'rgba(0, 255, 255, 0.03)', 'rgba(255, 0, 255, 0.03)',
-    'rgba(192, 192, 192, 0.03)', 'rgba(128, 0, 0, 0.03)', 'rgba(128, 128, 0, 0.03)',
-    'rgba(0, 128, 0, 0.03)', 'rgba(128, 0, 128, 0.03)', 'rgba(0, 128, 128, 0.03)',
-    'rgba(0, 0, 128, 0.03)', 'rgba(255, 99, 71, 0.03)', 'rgba(255, 165, 0, 0.03)',
-    'rgba(255, 215, 0, 0.03)', 'rgba(189, 183, 107, 0.03)', 'rgba(238, 130, 238, 0.03)',
-    'rgba(106, 90, 205, 0.03)', 'rgba(173, 216, 230, 0.03)', 'rgba(95, 158, 160, 0.03)',
-    'rgba(60, 179, 113, 0.03)', 'rgba(154, 205, 50, 0.03)', 'rgba(210, 105, 30, 0.03)',
-    'rgba(165, 42, 42, 0.03)', 'rgba(220, 20, 60, 0.03)', 'rgba(255, 192, 203, 0.03)',
-    'rgba(219, 112, 147, 0.03)', 'rgba(240, 230, 140, 0.03)', 'rgba(255, 228, 196, 0.03)',
-    'rgba(245, 222, 179, 0.03)', 'rgba(112, 128, 144, 0.03)'
+    'rgba(255, 0, 0, 0.05)',     // Red
+    'rgba(0, 255, 0, 0.05)',     // Lime
+    'rgba(0, 0, 255, 0.05)',     // Blue
+    'rgba(255, 255, 0, 0.05)',   // Yellow
+    'rgba(0, 255, 255, 0.05)',   // Cyan
+    'rgba(255, 0, 255, 0.05)',   // Magenta
+    'rgba(192, 192, 192, 0.05)', // Silver
+    'rgba(128, 0, 0, 0.05)',     // Maroon
+    'rgba(128, 128, 0, 0.05)',   // Olive
+    'rgba(0, 128, 0, 0.05)',     // Green
+    'rgba(128, 0, 128, 0.05)',   // Purple
+    'rgba(0, 128, 128, 0.05)',   // Teal
+    'rgba(0, 0, 128, 0.05)',     // Navy
+    'rgba(255, 99, 71, 0.05)',   // Tomato
+    'rgba(255, 165, 0, 0.05)',   // Orange
+    'rgba(255, 215, 0, 0.05)',   // Gold
+    'rgba(189, 183, 107, 0.05)', // Dark Khaki
+    'rgba(238, 130, 238, 0.05)', // Violet
+    'rgba(106, 90, 205, 0.05)',  // Slate Blue
+    'rgba(173, 216, 230, 0.05)', // Light Blue
+    'rgba(95, 158, 160, 0.05)',  // Cadet Blue
+    'rgba(60, 179, 113, 0.05)',  // Medium Sea Green
+    'rgba(154, 205, 50, 0.05)',  // Yellow Green
+    'rgba(210, 105, 30, 0.05)',  // Chocolate
+    'rgba(165, 42, 42, 0.05)',   // Brown
+    'rgba(220, 20, 60, 0.05)',   // Crimson
+    'rgba(255, 192, 203, 0.05)', // Pink
+    'rgba(219, 112, 147, 0.05)', // Pale Violet Red
+    'rgba(240, 230, 140, 0.05)', // Khaki
+    'rgba(255, 228, 196, 0.05)', // Bisque
+    'rgba(245, 222, 179, 0.05)', // Wheat
+    'rgba(112, 128, 144, 0.05)'  // Slate Gray
 ];
+
+interface RtlBlock {
+    start: number;
+    end: number;
+    sourceLine: number;
+}
 
 export class SourceMapper {
     private rtlEditor: vscode.TextEditor | undefined;
     private sourceEditor: vscode.TextEditor | undefined;
     
-    // 🎨 LAYER 2: ACTIVE HIGHLIGHT (The "Godbolt" Cyan)
-    // FIX: Opacity reduced to 0.1 (Was 0.25).
-    // This makes it a subtle highlight rather than a neon block.
+    // 🎨 LAYER 2: ACTIVE HIGHLIGHT
     private activeDecoration = vscode.window.createTextEditorDecorationType({
-        backgroundColor: 'rgba(0, 255, 255, 0.1)', // Subtle Cyan
+        backgroundColor: 'rgba(0, 255, 255, 0.1)',
         isWholeLine: true,
-        borderWidth: '0 0 0 3px',                  // Left Marker
-        borderColor: 'rgba(0, 255, 255, 0.6)',     // Solid Border
+        borderWidth: '0 0 0 3px',
+        borderColor: 'rgba(0, 255, 255, 0.6)',
         borderStyle: 'solid'
     });
 
     private rainbowDecorations: vscode.TextEditorDecorationType[] = [];
-    private sourceToRtlMap = new Map<number, number[]>(); // Source Line -> [RTL Ranges] (Wait, we need precise ranges now)
-    private sourceToRtlRanges = new Map<number, vscode.Range[]>(); // Better mapping
-    private rtlToSourceMap = new Map<number, number>();
+    
+    // Mapping Data
+    private sourceToRtlRanges = new Map<number, vscode.Range[]>(); 
+    private rtlBlocks: RtlBlock[] = []; 
 
     private disposable: vscode.Disposable | undefined;
 
@@ -51,7 +96,7 @@ export class SourceMapper {
         const rtlDoc = this.rtlEditor.document;
         const text = rtlDoc.getText();
 
-        // 1. Path Resolution (Standard)
+        // 1. Path Resolution
         const pathRegex = /"([^"]+\.(c|cc|cpp|h|hpp|f90|f95))":(\d+):(\d+)/;
         const match = pathRegex.exec(text);
 
@@ -88,7 +133,7 @@ export class SourceMapper {
             return;
         }
 
-        // 2. Build Precise Mapping (Parenthesis Aware)
+        // 2. Build Precise Mapping (Fast Version)
         this.buildMapping(text);
 
         // 3. Layout Editors
@@ -112,110 +157,134 @@ export class SourceMapper {
         vscode.window.showInformationMessage(`Linked RTL to source: ${path.basename(rawPath)}`);
     }
 
-    // 🧠 THE PARENTHESIS PARSER
-    // This Logic strictly follows S-Expressions. It ignores logs/noise.
+    // ⚡️ THE HIGH-PERFORMANCE PARSER
     private buildMapping(rtlText: string) {
         this.sourceToRtlRanges.clear();
-        this.rtlToSourceMap.clear();
+        this.rtlBlocks = [];
 
         const lines = rtlText.split('\n');
-        const locRegex = /"([^"]+)":(\d+):(\d+)/;
+        const len = lines.length;
 
         let balance = 0;
         let startLine = -1;
-        let hasStarted = false;
+        let blockSourceLine = -1;
 
-        for (let i = 0; i < lines.length; i++) {
+        const CHAR_OPEN = 40;  // (
+        const CHAR_CLOSE = 41; // )
+        const CHAR_QUOTE = 34; // "
+        const CHAR_0 = 48;
+        const CHAR_9 = 57;
+
+        for (let i = 0; i < len; i++) {
             const line = lines[i];
-            
-            // Count Parentheses in this line
-            let openCount = 0;
-            let closeCount = 0;
-            for (const char of line) {
-                if (char === '(') openCount++;
-                if (char === ')') closeCount++;
+            const lineLen = line.length;
+            if (lineLen === 0) continue;
+
+            let inString = false;
+            let localOpen = 0;
+            let localClose = 0;
+
+            for (let j = 0; j < lineLen; j++) {
+                const c = line.charCodeAt(j);
+                if (c === CHAR_QUOTE) {
+                    inString = !inString;
+                } else if (!inString) {
+                    if (c === CHAR_OPEN) localOpen++;
+                    else if (c === CHAR_CLOSE) localClose++;
+                }
             }
 
-            // Start of a new S-Expression?
-            // Must start with '(' and we must be currently balanced (0)
-            if (!hasStarted && line.trim().startsWith('(')) {
+            if (balance === 0 && line.charCodeAt(0) === CHAR_OPEN) {
                 startLine = i;
-                hasStarted = true;
-                balance = 0; // Reset
+                blockSourceLine = -1;
             }
 
-            if (hasStarted) {
-                balance += (openCount - closeCount);
+            balance += (localOpen - localClose);
 
-                // Check if this specific line has a Source Marker
-                const match = locRegex.exec(line);
-                if (match) {
-                    // GCC line numbers are 1-based, VS Code is 0-based
-                    const sLine = parseInt(match[2]) - 1;
-                    
-                    // We map the *Current S-Expression* so far to this source line.
-                    // But we wait until the expression closes to finalize the range.
-                    // Store the 'pending' source line in a temporary way? 
-                    // Actually, usually the marker is inside the block. 
-                    // We can just tag this block index `startLine` as belonging to `sLine`.
-                    
-                    // We need to map individual lines for the Reverse Lookup (RTL -> Source)
-                    this.rtlToSourceMap.set(i, sLine);
-                }
-
-                // End of S-Expression?
-                if (balance === 0 && startLine !== -1) {
-                    // The block is [startLine, i]
-                    // Scan the block text again to find the source line (to be sure)
-                    // (Optimization: we could have stored it above, but scanning 5 lines is cheap)
-                    let foundSourceLine = -1;
-                    for (let j = startLine; j <= i; j++) {
-                        const m = locRegex.exec(lines[j]);
-                        if (m) {
-                            foundSourceLine = parseInt(m[2]) - 1;
-                            break; 
-                        }
+            if ((balance > 0 || startLine === i) && blockSourceLine === -1) {
+                const idx = line.indexOf('":');
+                if (idx !== -1) {
+                    let p = idx + 2; 
+                    const numStart = p;
+                    while (p < lineLen) {
+                        const c = line.charCodeAt(p);
+                        if (c < CHAR_0 || c > CHAR_9) break;
+                        p++;
                     }
-
-                    if (foundSourceLine !== -1) {
-                        if (!this.sourceToRtlRanges.has(foundSourceLine)) {
-                            this.sourceToRtlRanges.set(foundSourceLine, []);
-                        }
-                        // Add this PRECISE range
-                        this.sourceToRtlRanges.get(foundSourceLine)!.push(new vscode.Range(startLine, 0, i, 1000));
-                        
-                        // Map all lines in this range to the source (for clicking RTL)
-                        for (let k = startLine; k <= i; k++) {
-                            this.rtlToSourceMap.set(k, foundSourceLine);
-                        }
+                    if (p > numStart) {
+                        const numStr = line.substring(numStart, p);
+                        blockSourceLine = parseInt(numStr) - 1;
                     }
-
-                    // Reset for next block
-                    hasStarted = false;
-                    startLine = -1;
                 }
+            }
+
+            if (balance === 0 && startLine !== -1) {
+                if (blockSourceLine !== -1) {
+                    // Commit Block
+                    this.rtlBlocks.push({
+                        start: startLine,
+                        end: i,
+                        sourceLine: blockSourceLine
+                    });
+
+                    let ranges = this.sourceToRtlRanges.get(blockSourceLine);
+                    if (!ranges) {
+                        ranges = [];
+                        this.sourceToRtlRanges.set(blockSourceLine, ranges);
+                    }
+                    ranges.push(new vscode.Range(startLine, 0, i, 1000));
+                }
+                startLine = -1;
             }
         }
     }
 
+    // ⚡️ BINARY SEARCH LOOKUP
+    private findSourceLineForRtlLine(rtlLine: number): number | undefined {
+        let low = 0;
+        let high = this.rtlBlocks.length - 1;
+
+        while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            const block = this.rtlBlocks[mid];
+
+            if (rtlLine >= block.start && rtlLine <= block.end) {
+                return block.sourceLine;
+            } else if (rtlLine < block.start) {
+                high = mid - 1;
+            } else {
+                low = mid + 1;
+            }
+        }
+        return undefined;
+    }
+
+    // 🌈 FIXED: Paints BOTH editors now
     private paintRainbow() {
         if (!this.rtlEditor || !this.sourceEditor) return;
 
+        // Initialize empty arrays for both
         const sourceRanges: vscode.Range[][] = this.rainbowDecorations.map(() => []);
-        // We can't easily rainbow the RTL side with ranges efficiently in this new mode 
-        // without recalculating. For now, let's rainbow the Source side primarily 
-        // to show structure.
-        // Actually, let's skip rainbow on RTL to keep it clean as requested ("Too bright").
-        // We will only rainbow the C Code to show "Block 1", "Block 2".
-        
+        const rtlRanges: vscode.Range[][] = this.rainbowDecorations.map(() => []);
+
+        // Populate ranges
         this.sourceToRtlRanges.forEach((ranges, sourceLine) => {
              const colorIndex = sourceLine % this.rainbowDecorations.length;
+             
+             // Add Source Side
              sourceRanges[colorIndex].push(new vscode.Range(sourceLine, 0, sourceLine, 1000));
+             
+             // Add RTL Side (FIX: This was missing!)
+             // "ranges" is the array of blocks in the RTL file that map to this source line
+             if (ranges && ranges.length > 0) {
+                 rtlRanges[colorIndex].push(...ranges);
+             }
         });
 
+        // Apply decorations to BOTH editors
         for (let i = 0; i < this.rainbowDecorations.length; i++) {
             this.sourceEditor.setDecorations(this.rainbowDecorations[i], sourceRanges[i]);
-            // this.rtlEditor.setDecorations(this.rainbowDecorations[i], rtlRanges[i]); // Disabled for cleanliness
+            this.rtlEditor.setDecorations(this.rainbowDecorations[i], rtlRanges[i]);
         }
     }
 
@@ -225,16 +294,14 @@ export class SourceMapper {
         this.disposable = vscode.window.onDidChangeTextEditorSelection(event => {
             if (!this.rtlEditor || !this.sourceEditor) return;
 
-            // SCENARIO A: Click Source -> Highlight RTL (Precise Block)
+            // SCENARIO A: Click Source -> Highlight RTL
             if (event.textEditor === this.sourceEditor) {
                 const currentSourceLine = event.selections[0].active.line;
                 const ranges = this.sourceToRtlRanges.get(currentSourceLine);
 
-                // Highlight Source
                 const sourceRange = new vscode.Range(currentSourceLine, 0, currentSourceLine, 1000);
                 this.sourceEditor.setDecorations(this.activeDecoration, [sourceRange]);
 
-                // Highlight RTL
                 if (ranges && ranges.length > 0) {
                     this.rtlEditor.revealRange(ranges[0], vscode.TextEditorRevealType.InCenterIfOutsideViewport);
                     this.rtlEditor.setDecorations(this.activeDecoration, ranges);
@@ -243,12 +310,11 @@ export class SourceMapper {
                 }
             } 
             
-            // SCENARIO B: Click RTL -> Highlight Source & CLEAR RTL
+            // SCENARIO B: Click RTL -> Highlight Source & CLEAR RTL Highlight
             else if (event.textEditor === this.rtlEditor) {
                 const currentRtlLine = event.selections[0].active.line;
-                const targetSourceLine = this.rtlToSourceMap.get(currentRtlLine);
+                const targetSourceLine = this.findSourceLineForRtlLine(currentRtlLine);
 
-                // CLEAR RTL Highlights immediately (As requested: "block should go away")
                 this.rtlEditor.setDecorations(this.activeDecoration, []);
 
                 if (targetSourceLine !== undefined) {

@@ -59,10 +59,14 @@ class BackendContext {
     symbols = new Map();
     wordFilesMap = new Map();
     processingFiles = new Set();
+    // 🚀 OPTIMIZATION 1: Cache the common path result
+    // undefined = not checked yet, null = checked and not found, string = found
+    commonMdPath = undefined;
     clear() {
         this.symbols.clear();
         this.wordFilesMap.clear();
         this.processingFiles.clear();
+        this.commonMdPath = undefined; // Reset cache on clear
     }
 }
 class GccMdCache {
@@ -77,12 +81,18 @@ class GccMdCache {
             this.contexts.set(dir, new BackendContext());
         return this.contexts.get(dir);
     }
+    // 🚀 OPTIMIZATION 2: Run this logic ONLY when needed
     findCommonMdPath(startDir) {
         let current = startDir;
+        // Limit search depth to avoid endless loops on weird file systems
         for (let i = 0; i < 5; i++) {
             const candidate = path.join(current, 'common.md');
-            if (fs.existsSync(candidate))
-                return candidate;
+            try {
+                // fs.existsSync is fine here because we only run it ONCE per session
+                if (fs.existsSync(candidate))
+                    return candidate;
+            }
+            catch { /* ignore permission errors */ }
             const parent = path.dirname(current);
             if (parent === current)
                 break;
@@ -109,8 +119,13 @@ class GccMdCache {
             // 2. Index content
             const defRegex = /\(define_(attr|predicate|special_predicate|constraint|register_constraint|memory_constraint|address_constraint|c_enum|enum|constants)\s+"([^"]+)"|\(define_([a-z]+)_(iterator|attr)\s+([a-zA-Z0-9_]+)\b|\(\s*([a-zA-Z0-9_]+)\s+([0-x0-9a-fA-F-]+)\s*\)/g;
             let match;
+            // 🚀 OPTIMIZATION 3: Yield to event loop occasionally for large files
+            let loopCounter = 0;
             while ((match = defRegex.exec(content)) !== null) {
-                // Check for commented-out definitions
+                // Every 50 matches, let the UI thread breathe
+                if (++loopCounter % 50 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
                 const textBeforeMatch = content.substring(0, match.index);
                 const lastNewLine = textBeforeMatch.lastIndexOf('\n');
                 const lineStart = lastNewLine === -1 ? 0 : lastNewLine + 1;
@@ -142,29 +157,19 @@ class GccMdCache {
                 }
                 if (!name || this.ignoredKeywords.has(name))
                     continue;
-                // --- IMPROVED COMMENT EXTRACTION ---
+                // Comment Extraction
                 const lines = textBeforeMatch.split('\n');
                 const lineNum = lines.length - 1;
                 let comments = [];
-                // Walk backwards from the definition line
                 for (let i = lineNum - 1; i >= 0; i--) {
                     const l = lines[i].trim();
-                    if (l === '') {
-                        // CRITICAL FIX: Stop immediately on a blank line.
-                        // This prevents merging the definition docs with the File
-                        // Header/License.
+                    if (l === '')
                         break;
-                    }
-                    if (l.startsWith(';')) {
-                        // Clean the comment marker but keep the text
+                    if (l.startsWith(';'))
                         comments.unshift(l.replace(/^;+\s*/, ''));
-                    }
-                    else {
-                        // Stop if we hit other code
+                    else
                         break;
-                    }
                 }
-                // -----------------------------------
                 const newSymbol = {
                     definition: content.substring(match.index).split(')')[0] + ')',
                     comments: comments.join('\n'),
@@ -202,23 +207,31 @@ class GccMdCache {
             ctx.processingFiles.delete(filePath);
         }
     }
+    // 🚀 OPTIMIZATION 4: Zero I/O in Hot Path
     getAllSymbols(uri, name) {
         const results = [];
         const startDir = path.dirname(uri.fsPath);
+        // 1. Get Context (Fast Map Lookup)
         const localCtx = this.contexts.get(startDir);
         if (localCtx) {
             const s = localCtx.symbols.get(name);
             if (s)
                 results.push(...s);
-        }
-        const commonPath = this.findCommonMdPath(startDir);
-        if (commonPath) {
-            const commonDir = path.dirname(commonPath);
-            const commonCtx = this.contexts.get(commonDir);
-            if (commonCtx) {
-                const s = commonCtx.symbols.get(name);
-                if (s)
-                    results.push(...s);
+            // 2. Check Common Path (Using Cache)
+            if (localCtx.commonMdPath === undefined) {
+                // First time? Calculate and cache it.
+                localCtx.commonMdPath = this.findCommonMdPath(startDir);
+            }
+            // If we have a common path, look it up in THAT context
+            if (localCtx.commonMdPath) {
+                const commonDir = path.dirname(localCtx.commonMdPath);
+                const commonCtx = this.contexts.get(commonDir);
+                // We only check if the context exists (it might be indexed separately)
+                if (commonCtx) {
+                    const s = commonCtx.symbols.get(name);
+                    if (s)
+                        results.push(...s);
+                }
             }
         }
         return results;
@@ -231,12 +244,13 @@ class GccMdCache {
         const dir = path.dirname(uri.fsPath);
         const ctx = this.getContext(uri);
         ctx.clear();
+        // Recalculate common path on reindex
+        ctx.commonMdPath = this.findCommonMdPath(dir);
         const files = await fs.promises.readdir(dir);
         await Promise.all(files.filter(f => f.endsWith('.md'))
             .map(f => this.indexFile(vscode.Uri.file(path.join(dir, f)))));
-        const commonPath = this.findCommonMdPath(dir);
-        if (commonPath)
-            await this.indexFile(vscode.Uri.file(commonPath));
+        if (ctx.commonMdPath)
+            await this.indexFile(vscode.Uri.file(ctx.commonMdPath));
     }
 }
 exports.GccMdCache = GccMdCache;
