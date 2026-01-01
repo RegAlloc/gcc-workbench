@@ -1,11 +1,11 @@
 /*
- * Script to pre-compile GCC definitions into JSON.
- * Usage: node scripts/generate_rtl_json.js
+ * Script to pre-compile GCC GIMPLE & TREE definitions into JSON.
+ * Usage: node scripts/generate_gimple_json.js
  * * Features:
- * - Parses rtl.def (Converts keys to LOWERCASE to match dump format)
- * - Parses reg-notes.def (Keeps UPPERCASE)
- * - Parses insn-notes.def (Keeps UPPERCASE)
- * - Supports shared documentation & whitespace preservation
+ * - Parses gimple.def (DEFGSCODE)
+ * - Parses tree.def (DEFTREECODE)
+ * - merges them into a single 'gimple_definitions.json'
+ * - Preserves whitespace/indentation inside comments (Golden Rule)
  */
 
 const fs = require('fs');
@@ -14,7 +14,7 @@ const path = require('path');
 // Paths
 const ROOT_DIR = path.resolve(__dirname, '..');
 const DATA_DIR = path.join(ROOT_DIR, 'data');
-const OUT_FILE = path.join(DATA_DIR, 'rtl_definitions.json');
+const OUT_FILE = path.join(DATA_DIR, 'gimple_definitions.json');
 
 // Ensure data dir exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -26,7 +26,7 @@ if (!fs.existsSync(DATA_DIR)) {
 const definitions = {};
 
 // ----------------------------------------------------------------------------
-// 1. Helper: Text Formatter (Golden Rule #2: Preserve Spaces)
+// 1. Helper: Text Formatter (Golden Rule: Preserve Spaces)
 // ----------------------------------------------------------------------------
 function formatComment(rawLines) {
     return rawLines
@@ -38,9 +38,11 @@ function formatComment(rawLines) {
             clean = clean.replace(/\*+\/\s*$/, '');
             
             // Remove leading '*' decoration common in C blocks (e.g. " * Text")
+            // Crucial: We replace `^\s*\*\s?` which removes the star and ONE space.
+            // Any extra spaces after that are PRESERVED.
             clean = clean.replace(/^\s*\*\s?/, '');
 
-            return clean; // Retain all other internal spaces
+            return clean;
         })
         .filter((line, index, arr) => {
             // Remove empty lines only from the absolute start/end
@@ -51,15 +53,15 @@ function formatComment(rawLines) {
 }
 
 // ----------------------------------------------------------------------------
-// 2. Helper: Documentation Extractor (Golden Rule #1: Shared Docs)
+// 2. Helper: Documentation Extractor (Golden Rule: Shared Docs)
 // ----------------------------------------------------------------------------
 function extractDoc(lines, currentIndex, isDefFn, normalizeKeyFn) {
-    // 1. Look Backwards
+    // Look Backwards
     for (let j = currentIndex - 1; j >= 0; j--) {
         const prevLine = lines[j].trim();
 
         if (prevLine === '') break; // Empty line breaks the chain
-        if (prevLine.startsWith('#')) continue; // Ignore preprocessor
+        if (prevLine.startsWith('#')) continue;
 
         // CASE A: Inheritance (Shared Documentation)
         if (isDefFn(prevLine)) {
@@ -92,96 +94,68 @@ function extractDoc(lines, currentIndex, isDefFn, normalizeKeyFn) {
 // 3. Parsers
 // ----------------------------------------------------------------------------
 
-function parseRtlDef() {
-    const filePath = path.join(DATA_DIR, 'rtl.def');
-    if (!fs.existsSync(filePath)) return console.warn('Warning: rtl.def not found.');
+function parseGimpleDef() {
+    const filePath = path.join(DATA_DIR, 'gimple.def');
+    if (!fs.existsSync(filePath)) return console.warn('Warning: gimple.def not found.');
 
     const content = fs.readFileSync(filePath, 'utf8');
     const lines = content.split('\n');
     
-    // Regex: DEF_RTL_EXPR(NAME, ...)
-    const regex = /DEF_RTL_EXPR\s*\(\s*([A-Z0-9_]+)\s*,/;
+    // Regex: DEFGSCODE(ENUM, "string_name", ...)
+    // We want the "string_name" (Group 2) as the key
+    const regex = /DEFGSCODE\s*\(\s*[A-Z0-9_]+\s*,\s*"([^"]+)"/;
     
     const checkDef = (line) => {
         const m = regex.exec(line);
-        return m ? m[1] : null;
+        return m ? m[1] : null; // "gimple_cond"
     };
     
-    // FIX: RTL codes must be LOWERCASE to match dump files (e.g., "insn", "set")
-    const normKey = (name) => name.toLowerCase();
+    // Key is already the string name, so just return it
+    const normKey = (name) => name;
 
     lines.forEach((line, i) => {
         const name = checkDef(line);
         if (name) {
-            const finalKey = normKey(name);
             const doc = extractDoc(lines, i, checkDef, normKey);
-            definitions[finalKey] = doc || `**${finalKey}**`;
+            definitions[name] = doc || `**${name}**`;
         }
     });
-    console.log(`Parsed rtl.def (Converted to lowercase keys)`);
+    console.log(`Parsed gimple.def`);
 }
 
-function parseRegNotes() {
-    const filePath = path.join(DATA_DIR, 'reg-notes.def');
-    if (!fs.existsSync(filePath)) return console.warn('Warning: reg-notes.def not found.');
+function parseTreeDef() {
+    const filePath = path.join(DATA_DIR, 'tree.def');
+    if (!fs.existsSync(filePath)) return console.warn('Warning: tree.def not found.');
 
     const content = fs.readFileSync(filePath, 'utf8');
     const lines = content.split('\n');
 
-    const regex = /(?:REG_NOTE|REG_CFA_NOTE)\s*\(\s*([A-Z0-9_]+)\s*\)/;
+    // Regex: DEFTREECODE(ENUM, "string_name", ...)
+    const regex = /DEFTREECODE\s*\(\s*[A-Z0-9_]+\s*,\s*"([^"]+)"/;
 
     const checkDef = (line) => {
         const m = regex.exec(line);
-        return m ? m[1] : null;
+        return m ? m[1] : null; // "plus_expr"
     };
-    // Notes stay UPPERCASE (e.g., "REG_DEAD")
-    const normKey = (name) => "REG_" + name; 
+    
+    const normKey = (name) => name;
 
     lines.forEach((line, i) => {
         const name = checkDef(line);
         if (name) {
-            const finalKey = normKey(name);
             const doc = extractDoc(lines, i, checkDef, normKey);
-            definitions[finalKey] = doc || `**${finalKey}**`;
+            definitions[name] = doc || `**${name}**`;
         }
     });
-    console.log(`Parsed reg-notes.def`);
-}
-
-function parseInsnNotes() {
-    const filePath = path.join(DATA_DIR, 'insn-notes.def');
-    if (!fs.existsSync(filePath)) return console.warn('Warning: insn-notes.def not found.');
-
-    const content = fs.readFileSync(filePath, 'utf8');
-    const lines = content.split('\n');
-
-    const regex = /INSN_NOTE\s*\(\s*([A-Z0-9_]+)\s*\)/;
-
-    const checkDef = (line) => {
-        const m = regex.exec(line);
-        return m ? m[1] : null;
-    };
-    // Insn notes stay UPPERCASE (e.g., "NOTE_INSN_BASIC_BLOCK")
-    const normKey = (name) => "NOTE_INSN_" + name;
-
-    lines.forEach((line, i) => {
-        const name = checkDef(line);
-        if (name) {
-            const finalKey = normKey(name);
-            const doc = extractDoc(lines, i, checkDef, normKey);
-            definitions[finalKey] = doc || `**${finalKey}**`;
-        }
-    });
-    console.log(`Parsed insn-notes.def`);
+    console.log(`Parsed tree.def`);
 }
 
 // ----------------------------------------------------------------------------
 // 4. Execution
 // ----------------------------------------------------------------------------
 
-parseRtlDef();
-parseRegNotes();
-parseInsnNotes();
+parseGimpleDef();
+parseTreeDef();
 
 fs.writeFileSync(OUT_FILE, JSON.stringify(definitions, null, 2));
 console.log(`\nSuccessfully generated ${OUT_FILE}`);

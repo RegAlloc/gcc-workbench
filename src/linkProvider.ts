@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Kishan Parmar
+ * Copyright (C) 2026 Kishan Parmar
  *
  * This file is part of GCC Workbench.
  *

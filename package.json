@@ -2,7 +2,7 @@
   "name": "gcc-syntax-highlighting",
   "displayName": "GCC Workbench (RTL, GIMPLE & MD)",
   "description": "The professional workspace for GCC engineers. Filter noise, and navigate Machine description files, RTL/GIMPLE dumps.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "author": {
     "name": "Kishan Parmar",
     "email": "kparmar2101@gmail.com",
@@ -74,7 +74,7 @@
         {
           "id": "gcc-explorer",
           "title": "GCC Explorer",
-          "icon":  "./pictures/gnu-dark.png"
+          "icon": "./pictures/gnu-dark.png"
         }
       ]
     },
@@ -132,10 +132,10 @@
         "icon": "$(arrow-left)"
       },
       {
-            "command": "gcc-workbench.viewSource",
-            "title": "View Source (Split)",
-            "icon": "$(file-code)"
-        }
+        "command": "gcc-workbench.viewSource",
+        "title": "View Source (Split)",
+        "icon": "$(file-code)"
+      }
     ],
     "keybindings": [
       {
@@ -184,10 +184,10 @@
           "when": "editorLangId == gcc-rtl || editorLangId == gcc-gimple"
         },
         {
-                "command": "gcc-workbench.viewSource",
-                "group": "navigation",
-                "when": "resourceLangId =~ /gcc-rtl|gcc-gimple/"
-            }
+          "command": "gcc-workbench.viewSource",
+          "group": "navigation",
+          "when": "resourceLangId =~ /gcc-rtl/"
+        }
       ],
       "view/title": [
         {

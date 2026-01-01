@@ -51,36 +51,29 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GCCMdLinkProvider = void 0;
-const fs = __importStar(require("fs"));
-const path = __importStar(require("path"));
+exports.GimpleHoverProvider = void 0;
 const vscode = __importStar(require("vscode"));
-class GCCMdLinkProvider {
-    provideDocumentLinks(document) {
-        const links = [];
-        const text = document.getText();
-        const includeRegex = /\(include\s+"([^"]+)"\)/g;
-        let match;
-        while ((match = includeRegex.exec(text)) !== null) {
-            const fileName = match[1];
-            // Calculate exact position of the filename for the underline
-            const startIdx = match.index + match[0].indexOf(fileName);
-            const range = new vscode.Range(document.positionAt(startIdx), document.positionAt(startIdx + fileName.length));
-            // Resolve the path relative to the current file's directory
-            const currentDir = path.dirname(document.uri.fsPath);
-            const filePath = path.resolve(currentDir, fileName);
-            if (fs.existsSync(filePath)) {
-                const targetUri = vscode.Uri.file(filePath);
-                // Use the custom command we registered in extension.ts
-                // This ensures every click opens a new, permanent tab
-                const commandUri = vscode.Uri.parse(`command:gcc-md.openFilePermanent?${encodeURIComponent(JSON.stringify([targetUri]))}`);
-                const link = new vscode.DocumentLink(range, commandUri);
-                link.tooltip = `Follow include: ${filePath}`;
-                links.push(link);
-            }
+class GimpleHoverProvider {
+    cache;
+    constructor(cache) {
+        this.cache = cache;
+    }
+    provideHover(document, position) {
+        // 1. Get word under cursor
+        const range = document.getWordRangeAtPosition(position);
+        if (!range)
+            return null;
+        const word = document.getText(range);
+        // 2. Lookup in Cache
+        const explanation = this.cache.getExplanation(word);
+        if (explanation) {
+            const markdown = new vscode.MarkdownString();
+            markdown.appendMarkdown(`#### 🇬 **${word}**\n`);
+            markdown.appendMarkdown(explanation);
+            return new vscode.Hover(markdown);
         }
-        return links;
+        return null;
     }
 }
-exports.GCCMdLinkProvider = GCCMdLinkProvider;
-//# sourceMappingURL=linkProvider.js.map
+exports.GimpleHoverProvider = GimpleHoverProvider;
+//# sourceMappingURL=gimpleHoverProvider.js.map

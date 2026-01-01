@@ -2,7 +2,6 @@
 
 ## ToDo features
 
-- parse insn-notes.def, gimple.def, machmode.def, tree.def
 - RTL, click instruction to jump to definition in .md
 - The "Liveness" Heatmap (Register Allocation Focus)
 	- Since your handle is RegAlloc, this might be closer to your heart. RTL dumps are long; it's hard to see where register pressure spikes.

@@ -52,7 +52,7 @@ Move through the compilation pipeline without leaving the editor.
 
 ### 4. Focus Mode (Noise Filter)
 RTL and GIMPLE dumps are often 50% metadata.
-* **Toggle Noise:** Click the **Eye Icon** to hide `.loc` lines, `.cfi` directives, basic block headers, and verbose comments.
+* **Toggle Noise:** Click the **Eye Icon** to hide `comment` lines, basic block headers.
 * Helps you focus purely on the instruction logic and data flow.
 
 ### 5. Control Flow Visualization

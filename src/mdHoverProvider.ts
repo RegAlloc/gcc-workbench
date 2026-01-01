@@ -68,7 +68,7 @@ export class GccMdHoverProvider implements vscode.HoverProvider {
     if (bestMatch) {
       const markdown = new vscode.MarkdownString();
       markdown.appendMarkdown(
-          `#### 💡**${cleanWord}**\n`);
+          `#### 💡 **${cleanWord}**\n`);
       if (bestMatch.comments)
         markdown.appendMarkdown(`${bestMatch.comments}\n\n---\n`);
       markdown.appendCodeblock(bestMatch.definition, 'gcc-md');
@@ -81,7 +81,7 @@ export class GccMdHoverProvider implements vscode.HoverProvider {
       const rtlExplanation = this.rtlCache.getExplanation(cleanWord);
       if (rtlExplanation) {
         const markdown = new vscode.MarkdownString();
-        markdown.appendMarkdown(`#### 📘**${cleanWord}**\n`);
+        markdown.appendMarkdown(`#### 🇷 **${cleanWord}**\n`);
         markdown.appendMarkdown(`${rtlExplanation}`);
         return new vscode.Hover(markdown);
       }

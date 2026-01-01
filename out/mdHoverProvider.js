@@ -98,7 +98,7 @@ class GccMdHoverProvider {
         }
         if (bestMatch) {
             const markdown = new vscode.MarkdownString();
-            markdown.appendMarkdown(`#### 💡**${cleanWord}**\n`);
+            markdown.appendMarkdown(`#### 💡 **${cleanWord}**\n`);
             if (bestMatch.comments)
                 markdown.appendMarkdown(`${bestMatch.comments}\n\n---\n`);
             markdown.appendCodeblock(bestMatch.definition, 'gcc-md');
@@ -110,7 +110,7 @@ class GccMdHoverProvider {
             const rtlExplanation = this.rtlCache.getExplanation(cleanWord);
             if (rtlExplanation) {
                 const markdown = new vscode.MarkdownString();
-                markdown.appendMarkdown(`#### 📘**${cleanWord}**\n`);
+                markdown.appendMarkdown(`#### 🇷 **${cleanWord}**\n`);
                 markdown.appendMarkdown(`${rtlExplanation}`);
                 return new vscode.Hover(markdown);
             }

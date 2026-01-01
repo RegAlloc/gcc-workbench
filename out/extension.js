@@ -66,9 +66,12 @@ const passDiffProvider_1 = require("./passDiffProvider");
 const passSurferProvider_1 = require("./passSurferProvider");
 const passTreeProvider_1 = require("./passTreeProvider");
 const rtlCache_1 = require("./rtlCache");
+const gimpleCache_1 = require("./gimpleCache");
+const gimpleHoverProvider_1 = require("./gimpleHoverProvider");
 const sourceMapper_1 = require("./sourceMapper"); // Import the new class
 const mdCache = new mdCache_1.GccMdCache();
 const rtlCache = new rtlCache_1.RtlDefCache();
+const gimpleCache = new gimpleCache_1.GimpleCache();
 const diffProvider = new passDiffProvider_1.GccPassDiffProvider();
 const focusProvider = new focusProvider_1.GccFocusProvider();
 const graphProvider = new graphProvider_1.GccGraphProvider();
@@ -103,13 +106,16 @@ async function activate(context) {
     rtlCache.initialize(context).then(() => {
         console.log("RTL Cache Ready");
     });
+    gimpleCache.initialize(context).then(() => {
+        console.log("GIMPLE Cache Ready");
+    });
     // 3. Selectors
     const mdSelector = { scheme: 'file', language: 'gcc-md' };
     const dumpSelector = [
         { scheme: 'file', language: 'gcc-rtl' },
-        { scheme: 'file', language: 'gcc-gimple' }, // Added gimple support for hover
         { scheme: 'file', language: 'gcc-md' }
     ];
+    const gimpleSelector = { scheme: 'file', language: 'gcc-gimple' };
     // 4. Startup Logic (Run immediately when window loads)
     if (vscode.window.activeTextEditor) {
         const editor = vscode.window.activeTextEditor;
@@ -166,6 +172,7 @@ async function activate(context) {
     context.subscriptions.push(vscode.languages.registerDocumentLinkProvider(mdSelector, new linkProvider_1.GCCMdLinkProvider()));
     // Generic (RTL + GIMPLE + MD)
     context.subscriptions.push(vscode.languages.registerHoverProvider(dumpSelector, new mdHoverProvider_1.GccMdHoverProvider(mdCache, rtlCache)));
+    context.subscriptions.push(vscode.languages.registerHoverProvider(gimpleSelector, new gimpleHoverProvider_1.GimpleHoverProvider(gimpleCache)));
     // 7. Commands
     // Helper Commands
     context.subscriptions.push(vscode.commands.registerCommand('gcc-md.openFilePermanent', (uri) => {

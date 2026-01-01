@@ -31,10 +31,13 @@ import { GccPassDiffProvider } from './passDiffProvider';
 import { GccPassSurferProvider } from './passSurferProvider';
 import { GccPassTreeProvider } from './passTreeProvider';
 import { RtlDefCache } from './rtlCache';
+import { GimpleCache } from './gimpleCache';
+import { GimpleHoverProvider } from './gimpleHoverProvider';
 import { SourceMapper } from './sourceMapper'; // Import the new class
 
 const mdCache = new GccMdCache();
 const rtlCache = new RtlDefCache();
+const gimpleCache = new GimpleCache();
 const diffProvider = new GccPassDiffProvider();
 const focusProvider = new GccFocusProvider();
 const graphProvider = new GccGraphProvider();
@@ -77,13 +80,16 @@ export async function activate(context: vscode.ExtensionContext) {
   rtlCache.initialize(context).then(() => {
         console.log("RTL Cache Ready");
     });
+  gimpleCache.initialize(context).then(() => {
+        console.log("GIMPLE Cache Ready");
+  });
   // 3. Selectors
   const mdSelector: vscode.DocumentSelector = { scheme: 'file', language: 'gcc-md' };
   const dumpSelector: vscode.DocumentSelector = [
     { scheme: 'file', language: 'gcc-rtl' },
-    { scheme: 'file', language: 'gcc-gimple' }, // Added gimple support for hover
     { scheme: 'file', language: 'gcc-md' }
   ];
+  const gimpleSelector: vscode.DocumentSelector = { scheme: 'file', language: 'gcc-gimple' };
 
   // 4. Startup Logic (Run immediately when window loads)
   if (vscode.window.activeTextEditor) {
@@ -154,6 +160,8 @@ export async function activate(context: vscode.ExtensionContext) {
   // Generic (RTL + GIMPLE + MD)
   context.subscriptions.push(vscode.languages.registerHoverProvider(
     dumpSelector, new GccMdHoverProvider(mdCache, rtlCache)));
+  context.subscriptions.push(vscode.languages.registerHoverProvider(
+      gimpleSelector, new GimpleHoverProvider(gimpleCache)));
 
   // 7. Commands
 
