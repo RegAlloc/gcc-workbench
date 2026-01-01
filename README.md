@@ -25,6 +25,7 @@ GCC produces hundreds of dump files during compilation. Navigating them manually
 ### Instant Hover Documentation
 Understand GCC internals without leaving the editor.
 * **RTL Definitions:** Hover over ir insns like `set`, `parallel`, or regnotes `REG_DEAD` to see their official documentation (parsed from `rtl.def` and `reg-notes.def`).
+* **Gimple Definitions:** Same as above, but for gimple.
 ![Documentation Preview](https://raw.githubusercontent.com/RegAlloc/gcc-workbench/main/pictures/documentation.png)
 
 ---
