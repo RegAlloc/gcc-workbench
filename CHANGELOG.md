@@ -2,7 +2,9 @@
 
 All notable changes to the "GCC Workbench" extension will be documented in this file.
 
-### [2.0.0] - kparmar2101@gmail.com - 2025-12-27
+---
+
+### [2.0.0] - cregalloc@gmail.com - 2025-12-27
 #### 🚀 Major Release: The Workbench Update
 This release transforms the extension from a syntax highlighter into a full Integrated Development Environment (IDE) for GCC engineers.
 
@@ -25,7 +27,9 @@ This release transforms the extension from a syntax highlighter into a full Inte
 - Fixed an issue where "Go to Definition" would not work immediately upon VS Code startup.
 - Fixed hover text formatting to correctly display multi-line documentation from C comments.
 
-### [1.0.0] - kparmar2101@gmail.com - 2025-12-13
+---
+
+### [1.0.0] - cregalloc@gmail.com - 2025-12-13
 #### Added
 - Initial release.
 - **Syntax Highlighting Support:**

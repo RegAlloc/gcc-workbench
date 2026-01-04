@@ -4,7 +4,7 @@
   <img src="https://raw.githubusercontent.com/RegAlloc/gcc-workbench/main/pictures/gcc.png" alt="GCC Workbench Logo" width="300"/>
 </p>
 
-**Extension version:** 2.0.0
+**Extension version:** 2.1.0
 
 This repository contains **GCC Workbench**, a Visual Studio Code / VSCodium extension designed to make life easier for GCC compiler engineers.
 
@@ -113,17 +113,30 @@ See the [LICENSE](./LICENSE) file for details.
 
 ---
 
+## Support the Project
+
+GCC Workbench is an open-source labor of love dedicated to making compiler internals accessible and productive.
+Maintaining and innovating on these tools requires time and research.
+
+If this extension has improved your workflow or helped you debug a complex RTL issue, consider supporting its ongoing development.
+
+<div align="center">
+  <a href="https://www.buymeacoffee.com/RegAlloc">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >
+  </a>
+</div>
+
 ### Project Status & Contributing
 
 The project is now open for the community to utilize, maintain, and evolve.
 
 * **Found a bug?**
     Please raise an issue on the issue tracker:
-    [https://github.com/RegAlloc/gcc-syntax-highlighting/issues](https://github.com/RegAlloc/gcc-syntax-highlighting/issues)
+    [https://github.com/RegAlloc/gcc-workbench/issues](https://github.com/RegAlloc/gcc-workbench/issues)
 
 * **Want to contribute?**
     Everyone is welcome to continue or expand on this project. Feel free to fork the repository and raise a Pull Request here:
-    [https://github.com/RegAlloc/gcc-syntax-highlighting](https://github.com/RegAlloc/gcc-syntax-highlighting)
+    [https://github.com/RegAlloc/gcc-workbench](https://github.com/RegAlloc/gcc-workbench)
 
 ### Publisher Trust & Security
 
