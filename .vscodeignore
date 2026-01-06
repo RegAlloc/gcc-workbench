@@ -13,7 +13,7 @@ out/test/**
 **/*.map
 
 data/**
-!data/rtl_definitions.json
+!data/*.json
 
 node_modules/**
 !node_modules
